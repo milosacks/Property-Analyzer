@@ -14,22 +14,29 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  // Properties
+  // Underwriting analysis (no DB — pure calculation)
+  analyze: (data) =>
+    request('/analyze/', { method: 'POST', body: JSON.stringify(data) }),
+
+  // AI investment memo
+  generateMemo: (propertyData, analysis) =>
+    request('/ai-memo/', {
+      method: 'POST',
+      body: JSON.stringify({ property_data: propertyData, analysis }),
+    }),
+
+  // Saved properties (DB)
   listProperties: (params = {}) => {
     const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v))
     return request(`/properties/${qs.toString() ? `?${qs}` : ''}`)
   },
-  getProperty: (id) => request(`/properties/${id}`),
-  createProperty: (data) => request('/properties/', { method: 'POST', body: JSON.stringify(data) }),
+  getProperty:    (id)       => request(`/properties/${id}`),
+  createProperty: (data)     => request('/properties/', { method: 'POST', body: JSON.stringify(data) }),
   updateProperty: (id, data) => request(`/properties/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deleteProperty: (id) => request(`/properties/${id}`, { method: 'DELETE' }),
+  deleteProperty: (id)       => request(`/properties/${id}`, { method: 'DELETE' }),
 
   // Transactions
-  listTransactions: (propertyId) => request(`/properties/${propertyId}/transactions`),
-  createTransaction: (propertyId, data) =>
-    request(`/properties/${propertyId}/transactions`, { method: 'POST', body: JSON.stringify(data) }),
-
-  // Analysis
-  analyzeProperty: (id) => request(`/analysis/${id}`),
-  compareProperties: (ids) => request(`/analysis/compare/?ids=${ids.join(',')}`),
+  listTransactions:  (pid)       => request(`/properties/${pid}/transactions`),
+  createTransaction: (pid, data) =>
+    request(`/properties/${pid}/transactions`, { method: 'POST', body: JSON.stringify(data) }),
 }

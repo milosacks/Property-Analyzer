@@ -14,13 +14,12 @@ def list_properties(status: Optional[str] = None, property_type: Optional[str] =
         query = query.eq("status", status)
     if property_type:
         query = query.eq("property_type", property_type)
-    result = query.execute()
-    return result.data
+    return query.execute().data
 
 
 @router.post("/", response_model=Property, status_code=201)
 def create_property(payload: PropertyCreate):
-    now = datetime.now(timezone.utc).isoformat()
+    now  = datetime.now(timezone.utc).isoformat()
     data = payload.model_dump()
     data["created_at"] = now
     data["updated_at"] = now
@@ -55,27 +54,22 @@ def delete_property(property_id: str):
         raise HTTPException(status_code=404, detail="Property not found")
 
 
-# --- Transactions ---
-
 @router.get("/{property_id}/transactions", response_model=list[Transaction])
 def list_transactions(property_id: str):
-    result = (
+    return (
         supabase.table("transactions")
-        .select("*")
-        .eq("property_id", property_id)
+        .select("*").eq("property_id", property_id)
         .order("transaction_date", desc=True)
-        .execute()
+        .execute().data
     )
-    return result.data
 
 
 @router.post("/{property_id}/transactions", response_model=Transaction, status_code=201)
 def create_transaction(property_id: str, payload: TransactionCreate):
     if payload.property_id != property_id:
         raise HTTPException(status_code=400, detail="property_id mismatch")
-    now = datetime.now(timezone.utc).isoformat()
+    now  = datetime.now(timezone.utc).isoformat()
     data = payload.model_dump()
     data["transaction_date"] = str(data["transaction_date"])
     data["created_at"] = now
-    result = supabase.table("transactions").insert(data).execute()
-    return result.data[0]
+    return supabase.table("transactions").insert(data).execute().data[0]

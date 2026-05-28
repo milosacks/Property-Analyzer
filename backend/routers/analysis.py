@@ -1,64 +1,52 @@
 from fastapi import APIRouter, HTTPException
-from database import supabase
-from models import AnalysisResult
+from models import AnalyzeRequest, AnalysisResponse
+from calculator import (
+    run_scenarios, interest_rate_sensitivity,
+    threshold_checks, calculate_score, make_recommendation,
+)
 
-router = APIRouter(prefix="/api/analysis", tags=["analysis"])
+router = APIRouter(prefix="/api/analyze", tags=["analysis"])
 
 
-def _calculate(prop: dict) -> AnalysisResult:
-    price = prop.get("price") or 0
-    down = prop.get("down_payment") or 0
-    rent = prop.get("monthly_rent")
-    expenses = prop.get("monthly_expenses") or 0
-    mortgage = prop.get("mortgage_payment") or 0
-
-    monthly_cf = None
-    annual_cf = None
-    noi = None
-    cap_rate = None
-    cocr = None
-    grm = None
-
-    if rent is not None:
-        monthly_cf = rent - expenses - mortgage
-        annual_cf = monthly_cf * 12
-        noi = (rent - expenses) * 12
-        if price > 0:
-            cap_rate = round((noi / price) * 100, 2)
-            grm = round(price / (rent * 12), 2)
-        total_investment = down + (expenses * 0)  # closing costs not tracked yet
-        if total_investment > 0:
-            cocr = round((annual_cf / total_investment) * 100, 2)
-
-    return AnalysisResult(
-        property_id=prop["id"],
-        purchase_price=price,
-        down_payment=down,
-        monthly_rent=rent,
-        monthly_expenses=expenses if rent is not None else None,
-        mortgage_payment=mortgage if rent is not None else None,
-        monthly_cash_flow=round(monthly_cf, 2) if monthly_cf is not None else None,
-        annual_cash_flow=round(annual_cf, 2) if annual_cf is not None else None,
-        noi=round(noi, 2) if noi is not None else None,
-        cap_rate=cap_rate,
-        cash_on_cash_return=cocr,
-        gross_rent_multiplier=grm,
-        total_investment=down,
+def _calc_inputs(p: AnalyzeRequest) -> dict:
+    return dict(
+        purchase_price=p.purchase_price,
+        monthly_rent=p.monthly_rent,
+        loan_to_value=p.loan_to_value,
+        interest_rate=p.interest_rate,
+        loan_term_years=p.loan_term_years,
+        vacancy_rate=p.vacancy_rate,
+        annual_taxes=p.annual_taxes,
+        annual_insurance=p.annual_insurance,
+        annual_repairs=p.annual_repairs,
+        annual_property_management=p.annual_property_management,
+        annual_capex_reserve=p.annual_capex_reserve,
+        renovation_cost=p.renovation_cost,
+        closing_costs=p.closing_costs,
+        num_units=p.num_units,
     )
 
 
-@router.get("/{property_id}", response_model=AnalysisResult)
-def analyze_property(property_id: str):
-    result = supabase.table("properties").select("*").eq("id", property_id).execute()
-    if not result.data:
-        raise HTTPException(status_code=404, detail="Property not found")
-    return _calculate(result.data[0])
+@router.post("/", response_model=AnalysisResponse)
+def analyze(payload: AnalyzeRequest):
+    inputs    = _calc_inputs(payload)
+    scenarios = run_scenarios(inputs)
+    sensitivity = interest_rate_sensitivity(inputs)
+    checks    = threshold_checks(payload.purchase_price, payload.renovation_cost, scenarios)
+    score     = calculate_score(
+        scenarios["base"],
+        payload.rent_confidence,
+        payload.expense_confidence,
+        payload.location_risk,
+        payload.property_condition_risk,
+    )
+    rec, reason = make_recommendation(scenarios)
 
-
-@router.get("/compare/", response_model=list[AnalysisResult])
-def compare_properties(ids: str):
-    id_list = [i.strip() for i in ids.split(",") if i.strip()]
-    if len(id_list) < 2:
-        raise HTTPException(status_code=400, detail="Provide at least 2 property IDs")
-    result = supabase.table("properties").select("*").in_("id", id_list).execute()
-    return [_calculate(p) for p in result.data]
+    return AnalysisResponse(
+        scenarios=scenarios,
+        sensitivity=sensitivity,
+        score=score,
+        threshold_checks=checks,
+        recommendation=rec,
+        recommendation_reason=reason,
+    )

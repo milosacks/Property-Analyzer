@@ -1,35 +1,47 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/properties'
 
-function fmt(n, suffix = '') {
-  if (n == null) return '—'
-  return `$${n.toLocaleString()}${suffix}`
+const $ = (n) => n == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+const pct = (n) => n == null ? '—' : `${(n * 100).toFixed(2)}%`
+
+const REC_COLOR = {
+  'Proceed':             'bg-green-100 text-green-800',
+  'Needs More Research': 'bg-yellow-100 text-yellow-800',
+  'Do Not Proceed':      'bg-red-100 text-red-800',
 }
-function pct(n) { return n == null ? '—' : `${n}%` }
 
 const METRICS = [
-  { key: 'purchase_price',       label: 'Purchase Price',        render: (v) => fmt(v) },
-  { key: 'down_payment',         label: 'Down Payment',          render: (v) => fmt(v) },
-  { key: 'monthly_rent',         label: 'Monthly Rent',          render: (v) => fmt(v) },
-  { key: 'monthly_expenses',     label: 'Monthly Expenses',      render: (v) => fmt(v) },
-  { key: 'mortgage_payment',     label: 'Mortgage Payment',      render: (v) => fmt(v) },
-  { key: 'monthly_cash_flow',    label: 'Monthly Cash Flow',     render: (v) => v == null ? '—' : <span className={v >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>{fmt(v)}</span> },
-  { key: 'annual_cash_flow',     label: 'Annual Cash Flow',      render: (v) => fmt(v) },
-  { key: 'noi',                  label: 'NOI',                   render: (v) => fmt(v) },
-  { key: 'cap_rate',             label: 'Cap Rate',              render: pct },
-  { key: 'cash_on_cash_return',  label: 'Cash-on-Cash Return',   render: pct },
-  { key: 'gross_rent_multiplier',label: 'GRM',                   render: (v) => v == null ? '—' : v.toFixed(2) },
+  { label: 'Purchase Price',      render: (a) => $(a.scenarios.base.total_cash_invested ? null : null), alt: (p) => $(p.purchase_price) },
+  { label: 'Monthly Rent',        alt: (p) => $(p.monthly_rent) },
+  { label: 'Units',               alt: (p) => p.num_units },
+  { label: 'Rent / Unit',         alt: (p) => $(p.monthly_rent / p.num_units) },
+  { divider: true },
+  { label: 'NOI',                 render: (a) => $(a.scenarios.base.noi) },
+  { label: 'Monthly Cash Flow',   render: (a) => $(a.scenarios.base.monthly_cash_flow), cf: true },
+  { label: 'Annual Cash Flow',    render: (a) => $(a.scenarios.base.annual_cash_flow),  cf: true },
+  { label: 'Total Cash Invested', render: (a) => $(a.scenarios.base.total_cash_invested) },
+  { divider: true },
+  { label: 'Cap Rate',            render: (a) => pct(a.scenarios.base.cap_rate),          threshold: 0.065 },
+  { label: 'Cash-on-Cash Return', render: (a) => pct(a.scenarios.base.cash_on_cash_return), threshold: 0.07 },
+  { label: 'DSCR',                render: (a) => `${a.scenarios.base.dscr.toFixed(2)}x`, threshold: 1.20, dscr: true },
+  { label: 'Break-Even Occ.',     render: (a) => pct(a.scenarios.base.break_even_occupancy) },
+  { divider: true },
+  { label: 'Risk Score',          render: (a) => `${a.score.total_score}/100` },
+  { label: 'Recommendation',      render: (a) => a.recommendation, rec: true },
+  { divider: true },
+  { label: 'Downside CoC',        render: (a) => pct(a.scenarios.downside.cash_on_cash_return) },
+  { label: 'Downside DSCR',       render: (a) => `${a.scenarios.downside.dscr.toFixed(2)}x`, threshold: 1.10, dscr: true },
+  { label: 'Downside CF',         render: (a) => $(a.scenarios.downside.monthly_cash_flow), cf: true },
 ]
 
 export default function Compare() {
-  const [all, setAll] = useState([])
+  const [all,      setAll]      = useState([])
   const [selected, setSelected] = useState([])
-  const [results, setResults] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [analyses, setAnalyses] = useState({})
+  const [loading,  setLoading]  = useState(false)
 
   useEffect(() => {
-    api.listProperties().then(setAll).catch((e) => setError(e.message))
+    api.listProperties().then(setAll)
   }, [])
 
   function toggle(id) {
@@ -39,82 +51,108 @@ export default function Compare() {
   }
 
   async function runCompare() {
-    if (selected.length < 2) return
     setLoading(true)
-    try {
-      const data = await api.compareProperties(selected)
-      setResults(data)
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
+    const results = {}
+    for (const id of selected) {
+      const prop = all.find((p) => p.id === id)
+      if (prop) results[id] = await api.analyze(prop)
     }
+    setAnalyses(results)
+    setLoading(false)
   }
 
-  const propMap = Object.fromEntries(all.map((p) => [p.id, p]))
+  const compared = selected.filter((id) => analyses[id])
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Compare Properties</h1>
 
       <div className="card">
-        <p className="text-sm text-gray-500 mb-3">Select 2–4 properties to compare</p>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {all.map((p) => (
-            <label key={p.id} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-              selected.includes(p.id) ? 'border-brand-500 bg-brand-50' : 'border-gray-200 hover:bg-gray-50'
-            }`}>
-              <input
-                type="checkbox"
-                checked={selected.includes(p.id)}
-                onChange={() => toggle(p.id)}
-                className="accent-brand-600"
-              />
-              <div>
-                <p className="font-medium text-sm">{p.address}</p>
-                <p className="text-xs text-gray-500">{p.city}, {p.state} · ${p.price.toLocaleString()}</p>
-              </div>
-            </label>
-          ))}
-        </div>
+        <p className="text-sm text-gray-500 mb-3">Select 2–4 saved properties to compare side-by-side</p>
+        {all.length === 0 ? (
+          <p className="text-gray-400 text-sm">No saved analyses yet. Analyze and save properties first.</p>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {all.map((p) => (
+              <label key={p.id} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                selected.includes(p.id) ? 'border-brand-500 bg-brand-50' : 'border-gray-200 hover:bg-gray-50'
+              }`}>
+                <input type="checkbox" checked={selected.includes(p.id)} onChange={() => toggle(p.id)} className="accent-brand-600" />
+                <div>
+                  <p className="font-medium text-sm">{p.address}</p>
+                  <p className="text-xs text-gray-500">{p.city} · {p.num_units} units · ${p.purchase_price?.toLocaleString()}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
         <div className="mt-4 flex gap-3">
-          <button
-            className="btn-primary"
-            disabled={selected.length < 2 || loading}
-            onClick={runCompare}
-          >
-            {loading ? 'Comparing…' : `Compare ${selected.length} Properties`}
+          <button className="btn-primary" disabled={selected.length < 2 || loading} onClick={runCompare}>
+            {loading ? 'Running…' : `Compare ${selected.length} Properties`}
           </button>
           {selected.length > 0 && (
-            <button className="btn-secondary" onClick={() => { setSelected([]); setResults([]) }}>Clear</button>
+            <button className="btn-secondary" onClick={() => { setSelected([]); setAnalyses({}) }}>Clear</button>
           )}
         </div>
       </div>
 
-      {error && <p className="text-red-500">{error}</p>}
-
-      {results.length > 0 && (
+      {compared.length >= 2 && (
         <div className="card p-0 overflow-x-auto">
-          <table className="min-w-full">
+          <table className="min-w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metric</th>
-                {results.map((r) => (
-                  <th key={r.property_id} className="px-4 py-3 text-left text-xs font-medium text-brand-700 uppercase">
-                    {propMap[r.property_id]?.address ?? r.property_id}
-                  </th>
-                ))}
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-44">Metric</th>
+                {compared.map((id) => {
+                  const p = all.find((x) => x.id === id)
+                  return (
+                    <th key={id} className="px-4 py-3 text-left text-xs font-semibold text-brand-700 uppercase">
+                      {p?.address}
+                      <span className="block font-normal text-gray-400">{p?.city} · {p?.num_units}u</span>
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
-              {METRICS.map((m) => (
-                <tr key={m.key} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-700">{m.label}</td>
-                  {results.map((r) => (
-                    <td key={r.property_id} className="px-4 py-3 text-sm">{m.render(r[m.key])}</td>
-                  ))}
-                </tr>
-              ))}
+            <tbody>
+              {METRICS.map((m, i) => {
+                if (m.divider) return <tr key={i}><td colSpan={compared.length + 1} className="border-t border-gray-200 py-0" /></tr>
+                return (
+                  <tr key={i} className="hover:bg-gray-50 border-t border-gray-50">
+                    <td className="px-4 py-2 text-gray-600 font-medium text-xs">{m.label}</td>
+                    {compared.map((id) => {
+                      const p = all.find((x) => x.id === id)
+                      const a = analyses[id]
+                      const val = m.render ? m.render(a) : m.alt ? m.alt(p) : '—'
+
+                      let color = ''
+                      if (m.rec) {
+                        return (
+                          <td key={id} className="px-4 py-2">
+                            <span className={`badge ${REC_COLOR[val] ?? ''}`}>{val}</span>
+                          </td>
+                        )
+                      }
+                      if (m.cf) {
+                        const raw = m.render ? a.scenarios?.base?.monthly_cash_flow : null
+                        if (m.label.includes('Annual')) {
+                          const v = a.scenarios?.base?.annual_cash_flow
+                          color = v >= 0 ? 'text-green-700' : 'text-red-600'
+                        } else {
+                          color = raw >= 0 ? 'text-green-700' : 'text-red-600'
+                        }
+                      }
+                      if (m.threshold) {
+                        const raw = m.dscr ? a.scenarios?.base?.dscr : m.label.includes('Cap') ? a.scenarios?.base?.cap_rate : a.scenarios?.base?.cash_on_cash_return
+                        const downRaw = m.dscr ? a.scenarios?.downside?.dscr : a.scenarios?.downside?.cash_on_cash_return
+                        const target = m.label.includes('Downside') ? downRaw : raw
+                        color = target >= m.threshold ? 'text-green-700' : 'text-red-600'
+                      }
+
+                      return <td key={id} className={`px-4 py-2 font-mono ${color}`}>{val}</td>
+                    })}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

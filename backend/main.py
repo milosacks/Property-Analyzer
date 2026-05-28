@@ -2,12 +2,13 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
-from routers import properties, analysis
+from routers import properties, analysis, ai_memo
 
-app = FastAPI(title="Property Analyzer", version="1.0.0")
+app = FastAPI(title="Property Analyzer — Raleigh-Durham Underwriting Assistant", version="2.0.0")
 
 app.include_router(properties.router)
 app.include_router(analysis.router)
+app.include_router(ai_memo.router)
 
 # Serve React build in production
 _static = Path(__file__).parent.parent / "frontend" / "dist"
