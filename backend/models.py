@@ -138,9 +138,10 @@ class ThresholdCheck(BaseModel):
 
 
 class ScoreComponent(BaseModel):
-    label:  str
-    score:  float
-    weight: float
+    label:           str
+    score:           float
+    weight:          float
+    formatted_value: Optional[str] = None   # e.g. "$297/mo", "6.87%", "1.21x"
 
 
 class ScoreResult(BaseModel):

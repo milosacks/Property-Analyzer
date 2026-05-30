@@ -299,15 +299,21 @@ def calculate_score(
     location_score     = risk(location_risk)
     condition_score    = risk(property_condition_risk)
 
+    # Format the actual metric values so the UI can display them
+    cf_fmt  = f"${mcf:+,.0f}/mo"
+    coc_fmt = f"{coc:+.1%}"
+    dscr_fmt = f"{dscr:.2f}x"
+    cap_fmt = f"{cap:.2%}"
+
     components = {
-        "cash_flow":          {"label": "Cash Flow",            "score": cf_score,            "weight": 0.25},
-        "coc_return":         {"label": "Cash-on-Cash Return",  "score": coc_score,           "weight": 0.20},
-        "dscr":               {"label": "DSCR",                 "score": dscr_score,          "weight": 0.15},
-        "cap_rate":           {"label": "Cap Rate",             "score": cap_score,           "weight": 0.10},
-        "rent_confidence":    {"label": "Rent Confidence",      "score": rent_conf_score,     "weight": 0.10},
-        "expense_confidence": {"label": "Expense Confidence",   "score": expense_conf_score,  "weight": 0.10},
-        "location_risk":      {"label": "Location/Market Risk", "score": location_score,      "weight": 0.05},
-        "property_condition": {"label": "Property Condition",   "score": condition_score,     "weight": 0.05},
+        "cash_flow":          {"label": "Cash Flow",            "score": cf_score,           "weight": 0.25, "formatted_value": cf_fmt},
+        "coc_return":         {"label": "Cash-on-Cash Return",  "score": coc_score,          "weight": 0.20, "formatted_value": coc_fmt},
+        "dscr":               {"label": "DSCR",                 "score": dscr_score,         "weight": 0.15, "formatted_value": dscr_fmt},
+        "cap_rate":           {"label": "Cap Rate",             "score": cap_score,          "weight": 0.10, "formatted_value": cap_fmt},
+        "rent_confidence":    {"label": "Rent Confidence",      "score": rent_conf_score,    "weight": 0.10, "formatted_value": rent_confidence.capitalize()},
+        "expense_confidence": {"label": "Expense Confidence",   "score": expense_conf_score, "weight": 0.10, "formatted_value": expense_confidence.capitalize()},
+        "location_risk":      {"label": "Location/Market Risk", "score": location_score,     "weight": 0.05, "formatted_value": location_risk.capitalize()},
+        "property_condition": {"label": "Property Condition",   "score": condition_score,    "weight": 0.05, "formatted_value": property_condition_risk.capitalize()},
     }
 
     total = sum(v["score"] * v["weight"] for v in components.values())
