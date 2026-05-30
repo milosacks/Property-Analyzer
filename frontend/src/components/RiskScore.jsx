@@ -1,5 +1,95 @@
+import { useState } from 'react'
+
+// ── Scale anchor tables (descending: best at top) ─────────────────────────────
+// Each entry: { label, score, note? }
+const SCALE = {
+  cash_flow: [
+    { label: '$1,000+/mo', score: 100 },
+    { label: '$500/mo',    score:  80 },
+    { label: '$200/mo',    score:  55, note: 'target min' },
+    { label: '$0/mo',      score:  15 },
+    { label: '−$500/mo',  score:   0 },
+  ],
+  coc_return: [
+    { label: '12%+',  score: 100 },
+    { label: '9%',    score:  85 },
+    { label: '7%',    score:  70, note: 'minimum' },
+    { label: '4%',    score:  40 },
+    { label: '0%',    score:  10 },
+    { label: '−5%',   score:   0 },
+  ],
+  dscr: [
+    { label: '1.60x+', score: 100 },
+    { label: '1.35x',  score:  82 },
+    { label: '1.20x',  score:  65, note: 'minimum' },
+    { label: '1.10x',  score:  40 },
+    { label: '1.00x',  score:  15 },
+    { label: '0.50x',  score:   0 },
+  ],
+  cap_rate: [
+    { label: '9%+',  score: 100 },
+    { label: '7.5%', score:  82 },
+    { label: '6.5%', score:  60, note: 'minimum' },
+    { label: '5.5%', score:  35 },
+    { label: '4.5%', score:  15 },
+    { label: '0%',   score:   0 },
+  ],
+  rent_confidence:    [{ label: 'High',     score: 100 }, { label: 'Medium', score: 70 }, { label: 'Low',       score: 30 }],
+  expense_confidence: [{ label: 'High',     score: 100 }, { label: 'Medium', score: 70 }, { label: 'Low',       score: 30 }],
+  location_risk:      [{ label: 'Low risk', score: 100 }, { label: 'Medium', score: 70 }, { label: 'High risk', score: 30 }],
+  property_condition: [{ label: 'Low risk', score: 100 }, { label: 'Medium', score: 70 }, { label: 'High risk', score: 30 }],
+}
+
+// Find which two anchors bracket the current score (anchors are descending)
+function findSegment(score, anchors) {
+  for (let i = 0; i < anchors.length - 1; i++) {
+    if (score <= anchors[i].score && score >= anchors[i + 1].score) return i
+  }
+  return -1
+}
+
+function ScaleTooltip({ componentKey, currentScore, formattedValue }) {
+  const anchors = SCALE[componentKey]
+  if (!anchors) return null
+  const seg = findSegment(currentScore, anchors)
+
+  return (
+    <div className="absolute bottom-full right-0 mb-2 z-50 w-52 pointer-events-none">
+      {/* Arrow */}
+      <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-r border-b border-gray-200 rotate-45" />
+      <div className="bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+        <div className="bg-gray-50 border-b border-gray-200 px-3 py-1.5">
+          <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Score scale</p>
+        </div>
+        <div className="px-3 py-2 space-y-1">
+          {anchors.map(({ label, score, note }, i) => {
+            const isAbove   = i === seg       // anchor just above current value
+            const isBelow   = i === seg + 1   // anchor just below current value
+            const highlight = isAbove || isBelow
+            return (
+              <div key={label} className={`flex items-center justify-between gap-2 text-xs rounded px-1 py-0.5
+                ${highlight ? 'bg-brand-50' : ''}`}>
+                <span className={highlight ? 'text-brand-700 font-medium' : 'text-gray-500'}>
+                  {label}
+                  {note && <span className="ml-1 text-gray-400 font-normal">({note})</span>}
+                </span>
+                <span className={`font-mono tabular-nums ${highlight ? 'text-brand-700 font-semibold' : 'text-gray-400'}`}>
+                  {score}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+        <div className="border-t border-gray-100 bg-gray-50 px-3 py-1.5 flex justify-between items-center">
+          <span className="text-xs text-gray-500 font-mono">{formattedValue}</span>
+          <span className="text-xs font-bold text-gray-700">{currentScore.toFixed(1)}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Bar({ pct, color }) {
-  // Never render completely invisible — a 0-score bar shows as a thin red sliver
   const width = pct === 0 ? 2 : pct
   return (
     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -14,20 +104,10 @@ function scoreColor(score) {
   return 'bg-red-500'
 }
 
-// Anchor points shown on hover so users understand the proportional scale
-const THRESHOLDS = {
-  cash_flow:          'Proportional: −$500/mo → 0 · $0 → 15 · $200 → 55 · $500 → 80 · $1,000+/mo → 100',
-  coc_return:         'Proportional: −5% → 0 · 0% → 10 · 4% → 40 · 7% (min) → 70 · 9% → 85 · 12%+ → 100',
-  dscr:               'Proportional: 0.50x → 0 · 1.00x → 15 · 1.10x → 40 · 1.20x (min) → 65 · 1.35x → 82 · 1.60x+ → 100',
-  cap_rate:           'Proportional: 0% → 0 · 4.5% → 15 · 5.5% → 35 · 6.5% (min) → 60 · 7.5% → 82 · 9%+ → 100',
-  rent_confidence:    'High → 100, Medium → 70, Low → 30',
-  expense_confidence: 'High → 100, Medium → 70, Low → 30',
-  location_risk:      'Low risk → 100, Medium → 70, High risk → 30',
-  property_condition: 'Low risk → 100, Medium → 70, High risk → 30',
-}
-
 export default function RiskScore({ score }) {
+  const [hovered, setHovered] = useState(null)
   const { total_score, components } = score
+
   return (
     <div className="card space-y-4">
       <div className="flex items-center justify-between">
@@ -37,12 +117,19 @@ export default function RiskScore({ score }) {
         </span>
       </div>
       <Bar pct={total_score} color={scoreColor(total_score)} />
+
       <div className="space-y-2 pt-1">
         {Object.entries(components).map(([key, c]) => {
           const weighted = (c.score * c.weight).toFixed(1)
           const isZero   = c.score === 0
+
           return (
-            <div key={key} className="flex items-center gap-3" title={THRESHOLDS[key] ?? ''}>
+            <div
+              key={key}
+              className="relative flex items-center gap-3 cursor-default"
+              onMouseEnter={() => setHovered(key)}
+              onMouseLeave={() => setHovered(null)}
+            >
               <div className="w-36 text-xs text-gray-600 shrink-0">{c.label}</div>
               <div className="flex-1">
                 <Bar pct={c.score} color={scoreColor(c.score)} />
@@ -59,13 +146,22 @@ export default function RiskScore({ score }) {
                 {' '}
                 <strong className="text-gray-700">= {weighted}</strong>
               </div>
+
+              {hovered === key && (
+                <ScaleTooltip
+                  componentKey={key}
+                  currentScore={c.score}
+                  formattedValue={c.formatted_value}
+                />
+              )}
             </div>
           )
         })}
       </div>
+
       <p className="text-xs text-gray-400 pt-1">
         80–100 = Proceed · 60–79 = Needs More Research · 0–59 = Do Not Proceed
-        <span className="ml-2 italic">Hover a row to see score thresholds.</span>
+        <span className="ml-2 italic">Hover any row to see its scale.</span>
       </p>
     </div>
   )
