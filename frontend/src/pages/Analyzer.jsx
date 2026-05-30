@@ -7,16 +7,16 @@ import ThresholdChecks       from '../components/ThresholdChecks'
 import SensitivityTable      from '../components/SensitivityTable'
 import AIMemo                from '../components/AIMemo'
 
-// ── Default form values match the investment thesis ───────────────────────────
+// ── Default form values — only selects and fixed constants pre-filled ─────────
 const DEFAULTS = {
-  address: '', city: '', state: 'NC', zip_code: '',
-  property_type: 'duplex', num_units: 2, vintage_year: '',
+  address: '', city: '', state: '', zip_code: '',
+  property_type: 'duplex', num_units: '', vintage_year: '',
   asset_class: 'B', status: 'analyzing', notes: '',
-  // Financing
-  purchase_price: '', loan_to_value: 0.75, interest_rate: 0.065,
-  loan_term_years: 30, renovation_cost: 0, closing_costs: '',
+  // Financing (loan_to_value / interest_rate / vacancy_rate stored as % for display)
+  purchase_price: '', loan_to_value: '', interest_rate: '',
+  loan_term_years: 30, renovation_cost: '', closing_costs: '',
   // Income
-  monthly_rent: '', vacancy_rate: 0.05,
+  monthly_rent: '', vacancy_rate: '',
   // Expenses
   annual_taxes: '', annual_insurance: '', annual_repairs: '',
   annual_property_management: '', annual_capex_reserve: '',
@@ -35,13 +35,13 @@ function toPayload(form) {
     num_units:                  Number(form.num_units),
     vintage_year:               num(form.vintage_year),
     purchase_price:             Number(form.purchase_price),
-    loan_to_value:              Number(form.loan_to_value),
-    interest_rate:              Number(form.interest_rate),
+    loan_to_value:              Number(form.loan_to_value)   / 100,   // % → decimal
+    interest_rate:              Number(form.interest_rate)   / 100,   // % → decimal
     loan_term_years:            Number(form.loan_term_years),
     renovation_cost:            Number(form.renovation_cost) || 0,
     closing_costs:              Number(form.closing_costs)   || 0,
     monthly_rent:               Number(form.monthly_rent),
-    vacancy_rate:               Number(form.vacancy_rate),
+    vacancy_rate:               Number(form.vacancy_rate)    / 100,   // % → decimal
     annual_taxes:               Number(form.annual_taxes)               || 0,
     annual_insurance:           Number(form.annual_insurance)           || 0,
     annual_repairs:             Number(form.annual_repairs)             || 0,
@@ -61,13 +61,13 @@ function Field({ label, hint, children }) {
   )
 }
 
-function Input({ form, field, type = 'text', ...rest }) {
+function Input({ form, field, type = 'text', onChange, ...rest }) {
   return (
     <input
       className="input"
       type={type}
       value={form[field]}
-      onChange={(e) => rest.onChange(field, e.target.value)}
+      onChange={(e) => onChange(field, e.target.value)}
       {...rest}
     />
   )
@@ -205,16 +205,16 @@ export default function Analyzer() {
             ]} />
           </Field>
 
-          <SectionHeader title="Purchase & Financing" subtitle="Assumes 30-year conventional; base rate 6.5%" />
+          <SectionHeader title="Purchase & Financing" subtitle="Percentages entered as numbers (e.g. 6.5, not 0.065)" />
 
           <Field label="Purchase Price ($)" hint="target $200k–$300k/unit">
             <Input form={form} field="purchase_price" type="number" required min={0} placeholder="300000" onChange={set} />
           </Field>
-          <Field label="Loan-to-Value" hint="e.g. 0.75 = 75%">
-            <Input form={form} field="loan_to_value" type="number" min={0} max={0.97} step={0.01} onChange={set} />
+          <Field label="Loan-to-Value (%)" hint="e.g. 75 = 75% down">
+            <Input form={form} field="loan_to_value" type="number" min={0} max={97} step={0.5} placeholder="75" onChange={set} />
           </Field>
-          <Field label="Interest Rate" hint="6.5% base / 7.5% stress">
-            <Input form={form} field="interest_rate" type="number" min={0} max={0.20} step={0.001} onChange={set} />
+          <Field label="Interest Rate (%)" hint="6.5% base / 7.5% stress">
+            <Input form={form} field="interest_rate" type="number" min={0} max={20} step={0.1} placeholder="6.5" onChange={set} />
           </Field>
           <Field label="Loan Term (years)">
             <Input form={form} field="loan_term_years" type="number" min={1} max={40} onChange={set} />
@@ -231,8 +231,8 @@ export default function Analyzer() {
           <Field label="Total Monthly Rent ($)">
             <Input form={form} field="monthly_rent" type="number" required min={0} placeholder="2800" onChange={set} />
           </Field>
-          <Field label="Vacancy Rate" hint="5% base / 10% stress">
-            <Input form={form} field="vacancy_rate" type="number" min={0} max={1} step={0.01} onChange={set} />
+          <Field label="Vacancy Rate (%)" hint="5% base / 10% stress">
+            <Input form={form} field="vacancy_rate" type="number" min={0} max={100} step={0.5} placeholder="5" onChange={set} />
           </Field>
           {form.monthly_rent && form.num_units > 0 && (
             <div className="flex items-center text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
