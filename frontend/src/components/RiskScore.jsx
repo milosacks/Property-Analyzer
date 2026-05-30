@@ -14,12 +14,12 @@ function scoreColor(score) {
   return 'bg-red-500'
 }
 
-// Thresholds shown in the tooltip so users understand what caused a 0
+// Anchor points shown on hover so users understand the proportional scale
 const THRESHOLDS = {
-  cash_flow:          'Score: <$0/mo → 0, $0–200 → 50, $200–500 → 80, $500+ → 100',
-  coc_return:         'Score: <0% → 0, 0–4% → 20, 4–7% → 50, 7–9% → 80, 9%+ → 100',
-  dscr:               'Score: <1.00x → 0, 1.00–1.10x → 40, 1.10–1.20x → 60, 1.20–1.35x → 80, 1.35x+ → 100',
-  cap_rate:           'Score: <4.5% → 0, 4.5–5.5% → 20, 5.5–6.5% → 50, 6.5–7.5% → 80, 7.5%+ → 100',
+  cash_flow:          'Proportional: −$500/mo → 0 · $0 → 15 · $200 → 55 · $500 → 80 · $1,000+/mo → 100',
+  coc_return:         'Proportional: −5% → 0 · 0% → 10 · 4% → 40 · 7% (min) → 70 · 9% → 85 · 12%+ → 100',
+  dscr:               'Proportional: 0.50x → 0 · 1.00x → 15 · 1.10x → 40 · 1.20x (min) → 65 · 1.35x → 82 · 1.60x+ → 100',
+  cap_rate:           'Proportional: 0% → 0 · 4.5% → 15 · 5.5% → 35 · 6.5% (min) → 60 · 7.5% → 82 · 9%+ → 100',
   rent_confidence:    'High → 100, Medium → 70, Low → 30',
   expense_confidence: 'High → 100, Medium → 70, Low → 30',
   location_risk:      'Low risk → 100, Medium → 70, High risk → 30',

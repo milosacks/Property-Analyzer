@@ -249,6 +249,25 @@ def threshold_checks(
 
 # ── Risk scoring ──────────────────────────────────────────────────────────────
 
+def _piecewise(value: float, anchors: list) -> float:
+    """
+    Linearly interpolate a score [0–100] from (x, score) anchor pairs.
+    Clamps to the first/last score outside the defined range.
+    Anchors must be sorted by x ascending.
+    """
+    if value <= anchors[0][0]:
+        return float(anchors[0][1])
+    if value >= anchors[-1][0]:
+        return float(anchors[-1][1])
+    for i in range(len(anchors) - 1):
+        x0, y0 = anchors[i]
+        x1, y1 = anchors[i + 1]
+        if x0 <= value <= x1:
+            t = (value - x0) / (x1 - x0)
+            return round(y0 + t * (y1 - y0), 2)
+    return float(anchors[-1][1])
+
+
 def calculate_score(
     base_results: dict,
     rent_confidence: str,
@@ -263,36 +282,48 @@ def calculate_score(
     def risk(level: str) -> float:
         return {"low": 100, "medium": 70, "high": 30}.get(level.lower(), 70)
 
-    # Cash flow (25%)
+    # Cash flow (25%) — $0 = break-even (not great), $500+/mo = excellent
     mcf = base_results.get("monthly_cash_flow", 0)
-    if   mcf >= 500: cf_score = 100
-    elif mcf >= 200: cf_score = 80
-    elif mcf >= 0:   cf_score = 50
-    else:            cf_score = 0
+    cf_score = _piecewise(mcf, [
+        (-500,   0),   # losing ≥$500/mo — hard fail
+        (   0,  15),   # break-even
+        ( 200,  55),   # target minimum ($200/mo)
+        ( 500,  80),   # solid
+        (1000, 100),   # excellent
+    ])
 
-    # CoC return (20%)
+    # CoC return (20%) — 7% is the minimum threshold
     coc = base_results.get("cash_on_cash_return", 0)
-    if   coc >= 0.09: coc_score = 100
-    elif coc >= 0.07: coc_score = 80
-    elif coc >= 0.04: coc_score = 50
-    elif coc >= 0:    coc_score = 20
-    else:             coc_score = 0
+    coc_score = _piecewise(coc, [
+        (-0.05,   0),  # deeply negative — fail
+        ( 0.00,  10),  # break-even
+        ( 0.04,  40),  # below threshold but improving
+        ( 0.07,  70),  # at minimum threshold (7%)
+        ( 0.09,  85),  # good
+        ( 0.12, 100),  # excellent (12%+)
+    ])
 
-    # DSCR (15%)
+    # DSCR (15%) — 1.20x minimum; below 1.0x the deal can't service debt
     dscr = base_results.get("dscr", 0)
-    if   dscr >= 1.35: dscr_score = 100
-    elif dscr >= 1.20: dscr_score = 80
-    elif dscr >= 1.10: dscr_score = 60
-    elif dscr >= 1.00: dscr_score = 40
-    else:              dscr_score = 0
+    dscr_score = _piecewise(dscr, [
+        (0.50,   0),   # catastrophic
+        (1.00,  15),   # just covers debt, no cushion
+        (1.10,  40),   # below minimum threshold
+        (1.20,  65),   # at minimum threshold (1.20x)
+        (1.35,  82),   # comfortable cushion
+        (1.60, 100),   # excellent (1.60x+)
+    ])
 
-    # Cap rate (10%)
+    # Cap rate (10%) — 6.5% minimum threshold
     cap = base_results.get("cap_rate", 0)
-    if   cap >= 0.075: cap_score = 100
-    elif cap >= 0.065: cap_score = 80
-    elif cap >= 0.055: cap_score = 50
-    elif cap >= 0.045: cap_score = 20
-    else:              cap_score = 0
+    cap_score = _piecewise(cap, [
+        (0.000,   0),  # zero/negative NOI
+        (0.045,  15),  # very low
+        (0.055,  35),  # below threshold
+        (0.065,  60),  # at minimum threshold (6.5%)
+        (0.075,  82),  # good
+        (0.090, 100),  # excellent (9%+)
+    ])
 
     rent_conf_score    = conf(rent_confidence)
     expense_conf_score = conf(expense_confidence)
