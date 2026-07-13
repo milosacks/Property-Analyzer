@@ -120,7 +120,7 @@ export default function Home() {
                               className="hover:text-brand-600 hover:underline"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              {p.address} ↗
+                              {p.address}
                             </a>
                           ) : p.address}
                         </p>
