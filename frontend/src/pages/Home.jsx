@@ -111,7 +111,19 @@ export default function Home() {
                   return (
                     <tr key={p.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/properties/${p.id}`)}>
                       <td className="px-4 py-3">
-                        <p className="font-medium text-gray-900">{p.address}</p>
+                        <p className="font-medium text-gray-900">
+                          {p.zillow_url ? (
+                            <a
+                              href={p.zillow_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-brand-600 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {p.address} ↗
+                            </a>
+                          ) : p.address}
+                        </p>
                         <p className="text-xs text-gray-400">{p.city}, {p.state}</p>
                       </td>
                       <td className="px-4 py-3 text-gray-600 capitalize">{p.property_type?.replace(/_/g,' ')}</td>

@@ -85,6 +85,11 @@ export default function PropertyForm({
             <Input form={form} field="zip_code" required placeholder="27701" onChange={onChange} />
           </Field>
         </div>
+        <div className="sm:col-span-2">
+          <Field label="Zillow URL" hint="optional — paste from listing page">
+            <Input form={form} field="zillow_url" type="url" placeholder="https://www.zillow.com/homes/…" onChange={onChange} />
+          </Field>
+        </div>
         <Field label="Property Type">
           <Select form={form} field="property_type" onChange={onChange} options={[
             ['duplex',            'Duplex (2 units)'],

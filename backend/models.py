@@ -53,6 +53,9 @@ class PropertyBase(BaseModel):
     # Strategy
     hold_period_years: int = 7
 
+    # External links
+    zillow_url: Optional[str] = None
+
 
 class PropertyCreate(PropertyBase):
     pass
@@ -87,6 +90,7 @@ class PropertyUpdate(BaseModel):
     location_risk:          Optional[RiskLevel]       = None
     property_condition_risk: Optional[RiskLevel]      = None
     hold_period_years: Optional[int] = None
+    zillow_url:        Optional[str] = None
 
 
 class Property(PropertyBase):

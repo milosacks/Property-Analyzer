@@ -12,7 +12,7 @@ import AIMemo                 from '../components/AIMemo'
 export const EMPTY_FORM = {
   address: '', city: '', state: '', zip_code: '',
   property_type: 'duplex', num_units: '', vintage_year: '',
-  asset_class: 'B', status: 'analyzing', notes: '',
+  asset_class: 'B', status: 'analyzing', notes: '', zillow_url: '',
   // percentage fields stored as display % (e.g. 6.5, 75, 5)
   purchase_price: '', loan_to_value: '', interest_rate: '',
   loan_term_years: 30, renovation_cost: '', closing_costs: '',

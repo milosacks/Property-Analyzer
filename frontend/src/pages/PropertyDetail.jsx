@@ -20,6 +20,7 @@ function propertyToForm(prop) {
     vacancy_rate:  +(prop.vacancy_rate   * 100).toPrecision(6),  // 0.05  → 5
     vintage_year:  prop.vintage_year ?? '',
     notes:         prop.notes ?? '',
+    zillow_url:    prop.zillow_url ?? '',
   }
 }
 
@@ -169,7 +170,12 @@ export default function PropertyDetail() {
             {' · '}{property.property_type?.replace(/_/g, ' ')}
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 flex-wrap">
+          {property.zillow_url && (
+            <a href={property.zillow_url} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+              Zillow ↗
+            </a>
+          )}
           <button className="btn-secondary" onClick={startEdit}>Edit</button>
           <button className="btn-secondary" onClick={() => navigate('/analyze')}>New Analysis</button>
           <button className="btn-danger" onClick={handleDelete} disabled={deleting}>Delete</button>
