@@ -41,11 +41,13 @@ function Section({ title, children }) {
   )
 }
 
+const fp = (v) => `${parseFloat((v * 100).toFixed(3))}%`
+
 export default function AnalysisOutput({ analysis: a }) {
   return (
     <div className="space-y-4">
       <p className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-4 py-2">
-        Fixed assumptions: purchase price = 95% of asking · 25% down · 7% fixed / 30yr · 4% closing costs · 6 months reserves
+        Assumptions: {fp(a.purchase_price_pct)} of asking · {fp(a.down_pct)} down · {fp(a.interest_rate)} / {a.loan_term_years}yr · {fp(a.closing_pct)} closing · {a.reserve_months} month reserves · {fp(a.expense_ratio)} expense ratio
       </p>
 
       <Section title="Basic Info">

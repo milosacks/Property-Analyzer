@@ -39,6 +39,25 @@ function SectionHeader({ title, subtitle }) {
   )
 }
 
+function AsmpField({ label, field, suffix, form, onChange, step = 'any', min }) {
+  return (
+    <div>
+      <label className="text-xs text-gray-500 block mb-1">{label}</label>
+      <div className="flex items-center gap-1.5">
+        <input
+          type="number"
+          step={step}
+          min={min}
+          className="input w-20 text-right tabular-nums"
+          value={form[field] ?? ''}
+          onChange={(e) => onChange(field, e.target.value)}
+        />
+        <span className="text-xs text-gray-400 shrink-0">{suffix}</span>
+      </div>
+    </div>
+  )
+}
+
 export default function PropertyForm({
   form, onChange, onSubmit, onCancel,
   loading = false, submitLabel = 'Analyze Property', error,
@@ -86,8 +105,24 @@ export default function PropertyForm({
         <Field label="Units" hint="count">
           <Input form={form} field="num_units" type="number" min={1} required onChange={onChange} />
         </Field>
-        <Field label="Unit Configuration" hint="optional">
-          <Input form={form} field="unit_config" placeholder="4 x 2br/1ba" onChange={onChange} />
+        <Field label="Beds / unit">
+          <Select form={form} field="beds_per_unit" onChange={onChange} options={[
+            ['studio', 'Studio'],
+            ['1', '1 Bedroom'],
+            ['2', '2 Bedrooms'],
+            ['3', '3 Bedrooms'],
+            ['4', '4 Bedrooms'],
+            ['5', '5+ Bedrooms'],
+          ]} />
+        </Field>
+        <Field label="Baths / unit">
+          <Select form={form} field="baths_per_unit" onChange={onChange} options={[
+            ['1',   '1 Bath'],
+            ['1.5', '1.5 Baths'],
+            ['2',   '2 Baths'],
+            ['2.5', '2.5 Baths'],
+            ['3',   '3 Baths'],
+          ]} />
         </Field>
         <Field label="Square Feet" hint="optional">
           <Input form={form} field="sqft" type="number" min={0} placeholder="3360" onChange={onChange} />
@@ -98,7 +133,7 @@ export default function PropertyForm({
           </Field>
         </div>
 
-        <SectionHeader title="Financials" subtitle="Expenses are calculated automatically as 40% of gross income" />
+        <SectionHeader title="Financials" />
 
         <Field label="Monthly Rent ($)" hint="total across all units">
           <Input form={form} field="monthly_rent" type="number" required min={0} placeholder="6800" onChange={onChange} />
@@ -108,6 +143,18 @@ export default function PropertyForm({
             ${(Number(form.monthly_rent) / Number(form.num_units)).toFixed(0)}/unit/month
           </div>
         )}
+
+        <SectionHeader title="Assumptions" subtitle="Defaults reflect a typical buy-and-hold strategy — adjust to model different scenarios" />
+
+        <div className="col-span-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <AsmpField label="Purchase Price"  field="purchase_price_pct" suffix="% of asking"        form={form} onChange={onChange} min={50} />
+          <AsmpField label="Down Payment"    field="down_pct"           suffix="%"                   form={form} onChange={onChange} min={0} />
+          <AsmpField label="Interest Rate"   field="interest_rate"      suffix="%"                   form={form} onChange={onChange} min={0} step={0.125} />
+          <AsmpField label="Loan Term"       field="loan_term_years"    suffix="years"               form={form} onChange={onChange} min={1} step={1} />
+          <AsmpField label="Closing Costs"   field="closing_pct"        suffix="% of purchase price" form={form} onChange={onChange} min={0} />
+          <AsmpField label="Reserves"        field="reserve_months"     suffix="months"              form={form} onChange={onChange} min={0} step={1} />
+          <AsmpField label="Expense Ratio"   field="expense_ratio"      suffix="% of gross income"   form={form} onChange={onChange} min={0} max={100} />
+        </div>
 
         <SectionHeader title="Status & Notes" />
 

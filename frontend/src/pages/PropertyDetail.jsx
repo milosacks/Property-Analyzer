@@ -6,26 +6,53 @@ import AnalysisOutput from '../components/AnalysisOutput'
 
 const $ = (n) => n == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
+function parseUnitConfig(unitConfig) {
+  if (!unitConfig) return { beds_per_unit: '2', baths_per_unit: '1' }
+  if (unitConfig.toLowerCase().includes('studio')) return { beds_per_unit: 'studio', baths_per_unit: '1' }
+  const m = unitConfig.match(/(\d+)br(?:\/([\d.]+)ba)?/)
+  return { beds_per_unit: m ? m[1] : '2', baths_per_unit: m ? (m[2] || '1') : '1' }
+}
+
+function buildUnitConfig(numUnits, beds, baths) {
+  if (!beds) return null
+  const bedsStr = beds === 'studio' ? 'Studio' : `${beds}br`
+  return `${numUnits} x ${bedsStr}/${baths}ba`
+}
+
 function propertyToForm(prop) {
   return {
     ...prop,
     neighborhood: prop.neighborhood ?? '',
     broker:       prop.broker       ?? '',
-    unit_config:  prop.unit_config  ?? '',
     sqft:         prop.sqft         ?? '',
     notes:        prop.notes        ?? '',
     zillow_url:   prop.zillow_url   ?? '',
+    // Parse stored unit_config back to dropdown values
+    ...parseUnitConfig(prop.unit_config),
+    // Default assumptions for the edit form
+    expense_ratio: '40', purchase_price_pct: '95', down_pct: '25',
+    interest_rate: '7', loan_term_years: '30', closing_pct: '4', reserve_months: '6',
   }
 }
 
 function toPayload(form) {
-  const num = (v) => (v === '' || v == null ? null : Number(v))
+  const n   = (v) => (v === '' || v == null ? null : Number(v))
+  const pct = (v) => (v === '' || v == null ? null : Number(v) / 100)
+  const numUnits = Number(form.num_units) || 1
   return {
     ...form,
-    num_units:    Number(form.num_units) || 1,
-    sqft:         num(form.sqft),
+    num_units:    numUnits,
+    sqft:         n(form.sqft),
     asking_price: Number(form.asking_price),
     monthly_rent: Number(form.monthly_rent),
+    unit_config:  buildUnitConfig(numUnits, form.beds_per_unit, form.baths_per_unit),
+    expense_ratio:      pct(form.expense_ratio)      ?? 0.40,
+    purchase_price_pct: pct(form.purchase_price_pct) ?? 0.95,
+    down_pct:           pct(form.down_pct)           ?? 0.25,
+    interest_rate:      pct(form.interest_rate)      ?? 0.07,
+    loan_term_years:    n(form.loan_term_years)      ?? 30,
+    closing_pct:        pct(form.closing_pct)        ?? 0.04,
+    reserve_months:     n(form.reserve_months)       ?? 6,
   }
 }
 

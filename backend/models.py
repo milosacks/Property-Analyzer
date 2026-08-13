@@ -70,35 +70,47 @@ class AnalyzeRequest(BaseModel):
     purchase_price: Optional[float] = None   # legacy fallback
     monthly_rent:   float
     sqft:           Optional[int]   = None
+    # Overrideable assumptions (decimals, e.g. 0.95 not 95)
+    expense_ratio:      Optional[float] = None
+    purchase_price_pct: Optional[float] = None
+    down_pct:           Optional[float] = None
+    interest_rate:      Optional[float] = None
+    loan_term_years:    Optional[int]   = None
+    closing_pct:        Optional[float] = None
+    reserve_months:     Optional[int]   = None
 
     model_config = {"extra": "ignore"}
 
 
 class AnalysisResult(BaseModel):
-    # Calculated from rent (40% of gross income)
+    # Echoed assumptions
+    expense_ratio:      float
+    purchase_price_pct: float
+    down_pct:           float
+    interest_rate:      float
+    loan_term_years:    int
+    closing_pct:        float
+    reserve_months:     int
+    # Calculated outputs
     annual_expenses:  float
-    # Basic info
     purchase_price:   float
     price_per_sqft:   Optional[float] = None
     gross_income:     float
     grm:              float
     noi:              float
     cap_rate:         float
-    # Purchase
     down_payment:     float
     closing_cost:     float
     amount_financed:  float
     reserves:         float
     cash_at_closing:  float
-    # Financing
     monthly_mortgage: float
     annual_mortgage:  float
-    # Returns
     annual_cash_flow:  float
     monthly_cash_flow: float
-    dti:               float   # (mortgage + expenses/12) / (rent × 75%), as %
-    dcr:               float   # NOI / annual mortgage, as %
-    roi:               float   # annual cash flow / cash at closing, as %
+    dti:               float
+    dcr:               float
+    roi:               float
 
 
 # ── Transaction models ─────────────────────────────────────────────────────────

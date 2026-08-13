@@ -7,19 +7,40 @@ export const EMPTY_FORM = {
   address: '', city: '', state: '', zip_code: '',
   neighborhood: '', broker: '', zillow_url: '', notes: '',
   status: 'analyzing',
-  property_type: 'duplex', num_units: '', unit_config: '', sqft: '',
+  property_type: 'duplex', num_units: '', sqft: '',
+  beds_per_unit: '2', baths_per_unit: '1',
   asking_price: '', monthly_rent: '',
+  // Assumptions (shown as whole-number percentages in UI)
+  expense_ratio: '40', purchase_price_pct: '95', down_pct: '25',
+  interest_rate: '7', loan_term_years: '30', closing_pct: '4', reserve_months: '6',
 }
 
 function num(v) { return v === '' || v == null ? null : Number(v) }
+function pct(v) { return v === '' || v == null ? null : Number(v) / 100 }
+
+function buildUnitConfig(numUnits, beds, baths) {
+  if (!beds) return null
+  const bedsStr = beds === 'studio' ? 'Studio' : `${beds}br`
+  return `${numUnits} x ${bedsStr}/${baths}ba`
+}
 
 export function toPayload(form) {
+  const numUnits = Number(form.num_units) || 1
   return {
     ...form,
-    num_units:    Number(form.num_units) || 1,
+    num_units:    numUnits,
     sqft:         num(form.sqft),
     asking_price: Number(form.asking_price),
     monthly_rent: Number(form.monthly_rent),
+    unit_config:  buildUnitConfig(numUnits, form.beds_per_unit, form.baths_per_unit),
+    // Convert UI percentages to decimals for the backend
+    expense_ratio:      pct(form.expense_ratio)      ?? 0.40,
+    purchase_price_pct: pct(form.purchase_price_pct) ?? 0.95,
+    down_pct:           pct(form.down_pct)           ?? 0.25,
+    interest_rate:      pct(form.interest_rate)      ?? 0.07,
+    loan_term_years:    num(form.loan_term_years)    ?? 30,
+    closing_pct:        pct(form.closing_pct)        ?? 0.04,
+    reserve_months:     num(form.reserve_months)     ?? 6,
   }
 }
 
