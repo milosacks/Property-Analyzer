@@ -2,37 +2,38 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/properties'
 
 const $ = (n) => n == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
-const pct = (n) => n == null ? '—' : `${(n * 100).toFixed(2)}%`
-
-const REC_COLOR = {
-  'Proceed':             'bg-green-100 text-green-800',
-  'Needs More Research': 'bg-yellow-100 text-yellow-800',
-  'Do Not Proceed':      'bg-red-100 text-red-800',
-}
+const pct = (n) => n == null ? '—' : `${n.toFixed(1)}%`
 
 const METRICS = [
-  { label: 'Purchase Price',      render: (a) => $(a.scenarios.base.total_cash_invested ? null : null), alt: (p) => $(p.purchase_price) },
-  { label: 'Monthly Rent',        alt: (p) => $(p.monthly_rent) },
-  { label: 'Units',               alt: (p) => p.num_units },
-  { label: 'Rent / Unit',         alt: (p) => $(p.monthly_rent / p.num_units) },
+  { label: 'Asking Price',       alt: (p) => $(p.asking_price) },
+  { label: 'Purchase Price (est.)', render: (a) => $(a.purchase_price) },
+  { label: 'Monthly Rent',       alt: (p) => $(p.monthly_rent) },
+  { label: 'Units',              alt: (p) => p.unit_config ? `${p.num_units} (${p.unit_config})` : p.num_units },
+  { label: 'Sq Ft',              alt: (p) => p.sqft ? p.sqft.toLocaleString() : '—' },
   { divider: true },
-  { label: 'NOI',                 render: (a) => $(a.scenarios.base.noi) },
-  { label: 'Monthly Cash Flow',   render: (a) => $(a.scenarios.base.monthly_cash_flow), cf: true },
-  { label: 'Annual Cash Flow',    render: (a) => $(a.scenarios.base.annual_cash_flow),  cf: true },
-  { label: 'Total Cash Invested', render: (a) => $(a.scenarios.base.total_cash_invested) },
+  { label: 'Gross Income',       render: (a) => $(a.gross_income) },
+  { label: 'Annual Expenses',    render: (a) => $(a.annual_expenses) },
+  { label: 'NOI',                render: (a) => $(a.noi) },
+  { label: 'GRM',                render: (a) => a.grm.toFixed(2),               grm: true },
+  { label: 'Cap Rate',           render: (a) => pct(a.cap_rate * 100),          cap: true },
   { divider: true },
-  { label: 'Cap Rate',            render: (a) => pct(a.scenarios.base.cap_rate),          threshold: 0.065 },
-  { label: 'Cash-on-Cash Return', render: (a) => pct(a.scenarios.base.cash_on_cash_return), threshold: 0.07 },
-  { label: 'DSCR',                render: (a) => `${a.scenarios.base.dscr.toFixed(2)}x`, threshold: 1.20, dscr: true },
-  { label: 'Break-Even Occ.',     render: (a) => pct(a.scenarios.base.break_even_occupancy) },
+  { label: 'Cash at Closing',    render: (a) => $(a.cash_at_closing) },
+  { label: 'Monthly Mortgage',   render: (a) => $(a.monthly_mortgage) },
+  { label: 'Monthly Cash Flow',  render: (a) => $(a.monthly_cash_flow),         cf: true },
   { divider: true },
-  { label: 'Risk Score',          render: (a) => `${a.score.total_score}/100` },
-  { label: 'Recommendation',      render: (a) => a.recommendation, rec: true },
-  { divider: true },
-  { label: 'Downside CoC',        render: (a) => pct(a.scenarios.downside.cash_on_cash_return) },
-  { label: 'Downside DSCR',       render: (a) => `${a.scenarios.downside.dscr.toFixed(2)}x`, threshold: 1.10, dscr: true },
-  { label: 'Downside CF',         render: (a) => $(a.scenarios.downside.monthly_cash_flow), cf: true },
+  { label: 'Debt Coverage Ratio', render: (a) => pct(a.dcr),                   dcr: true },
+  { label: 'Debt-to-Income',     render: (a) => pct(a.dti) },
+  { label: 'Return on Investment', render: (a) => pct(a.roi),                  roi: true },
 ]
+
+function cellColor(m, a) {
+  if (m.grm)  return a.grm <= 12 ? 'text-green-700' : a.grm <= 15 ? 'text-amber-600' : 'text-red-600'
+  if (m.cap)  return a.cap_rate >= 0.065 ? 'text-green-700' : a.cap_rate >= 0.05 ? 'text-amber-600' : 'text-red-600'
+  if (m.dcr)  return a.dcr >= 130 ? 'text-green-700' : a.dcr >= 100 ? 'text-amber-600' : 'text-red-600'
+  if (m.roi)  return a.roi >= 10 ? 'text-green-700' : a.roi >= 0 ? 'text-amber-600' : 'text-red-600'
+  if (m.cf)   return a.monthly_cash_flow >= 200 ? 'text-green-700' : a.monthly_cash_flow >= 0 ? 'text-amber-600' : 'text-red-600'
+  return ''
+}
 
 export default function Compare() {
   const [all,      setAll]      = useState([])
@@ -80,7 +81,9 @@ export default function Compare() {
                 <input type="checkbox" checked={selected.includes(p.id)} onChange={() => toggle(p.id)} className="accent-brand-600" />
                 <div>
                   <p className="font-medium text-sm">{p.address}</p>
-                  <p className="text-xs text-gray-500">{p.city} · {p.num_units} units · ${p.purchase_price?.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">
+                    {p.city} · {p.num_units} units · {p.asking_price ? `$${p.asking_price.toLocaleString()}` : '—'}
+                  </p>
                 </div>
               </label>
             ))}
@@ -115,7 +118,9 @@ export default function Compare() {
             </thead>
             <tbody>
               {METRICS.map((m, i) => {
-                if (m.divider) return <tr key={i}><td colSpan={compared.length + 1} className="border-t border-gray-200 py-0" /></tr>
+                if (m.divider) {
+                  return <tr key={i}><td colSpan={compared.length + 1} className="border-t border-gray-200 py-0" /></tr>
+                }
                 return (
                   <tr key={i} className="hover:bg-gray-50 border-t border-gray-50">
                     <td className="px-4 py-2 text-gray-600 font-medium text-xs">{m.label}</td>
@@ -123,31 +128,7 @@ export default function Compare() {
                       const p = all.find((x) => x.id === id)
                       const a = analyses[id]
                       const val = m.render ? m.render(a) : m.alt ? m.alt(p) : '—'
-
-                      let color = ''
-                      if (m.rec) {
-                        return (
-                          <td key={id} className="px-4 py-2">
-                            <span className={`badge ${REC_COLOR[val] ?? ''}`}>{val}</span>
-                          </td>
-                        )
-                      }
-                      if (m.cf) {
-                        const raw = m.render ? a.scenarios?.base?.monthly_cash_flow : null
-                        if (m.label.includes('Annual')) {
-                          const v = a.scenarios?.base?.annual_cash_flow
-                          color = v >= 0 ? 'text-green-700' : 'text-red-600'
-                        } else {
-                          color = raw >= 0 ? 'text-green-700' : 'text-red-600'
-                        }
-                      }
-                      if (m.threshold) {
-                        const raw = m.dscr ? a.scenarios?.base?.dscr : m.label.includes('Cap') ? a.scenarios?.base?.cap_rate : a.scenarios?.base?.cash_on_cash_return
-                        const downRaw = m.dscr ? a.scenarios?.downside?.dscr : a.scenarios?.downside?.cash_on_cash_return
-                        const target = m.label.includes('Downside') ? downRaw : raw
-                        color = target >= m.threshold ? 'text-green-700' : 'text-red-600'
-                      }
-
+                      const color = m.render ? cellColor(m, a) : ''
                       return <td key={id} className={`px-4 py-2 font-mono ${color}`}>{val}</td>
                     })}
                   </tr>

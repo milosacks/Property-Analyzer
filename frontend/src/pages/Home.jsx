@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api/properties'
 
 const REC_CONFIG = {
-  'passed':      { label: 'Passed',        color: 'bg-green-100 text-green-800' },
-  'researching': { label: 'Researching',   color: 'bg-yellow-100 text-yellow-800' },
-  'rejected':    { label: 'Rejected',      color: 'bg-red-100 text-red-800' },
-  'analyzing':   { label: 'Analyzing',     color: 'bg-blue-100 text-blue-800' },
-  'watching':    { label: 'Watching',      color: 'bg-gray-100 text-gray-800' },
+  'passed':      { label: 'Passed',      color: 'bg-green-100 text-green-800' },
+  'researching': { label: 'Researching', color: 'bg-yellow-100 text-yellow-800' },
+  'rejected':    { label: 'Rejected',    color: 'bg-red-100 text-red-800' },
+  'analyzing':   { label: 'Analyzing',   color: 'bg-blue-100 text-blue-800' },
+  'watching':    { label: 'Watching',    color: 'bg-gray-100 text-gray-800' },
 }
 
 const $ = (n) => n == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
@@ -25,7 +25,7 @@ export default function Home() {
     total:       properties.length,
     passed:      properties.filter((p) => p.status === 'passed').length,
     researching: properties.filter((p) => p.status === 'researching').length,
-    totalValue:  properties.reduce((s, p) => s + (p.purchase_price || 0), 0),
+    totalValue:  properties.reduce((s, p) => s + (p.asking_price || 0), 0),
   }
 
   return (
@@ -35,8 +35,7 @@ export default function Home() {
         <p className="text-xs font-semibold uppercase tracking-widest opacity-70 mb-2">Raleigh-Durham · B-Class · Buy &amp; Hold</p>
         <h1 className="text-3xl font-bold">Property Underwriting Assistant</h1>
         <p className="mt-2 opacity-80 max-w-xl">
-          AI-assisted deal analysis for small multifamily and SFR investments. Enter any property
-          to calculate NOI, cap rate, CoC return, DSCR, and get a three-scenario recommendation.
+          Enter any property to calculate cap rate, GRM, debt coverage, and cash flow — with fixed 7% / 30yr financing assumptions.
         </p>
         <div className="mt-6 flex gap-3 flex-wrap">
           <button className="bg-white text-brand-700 font-semibold px-5 py-2 rounded-lg hover:bg-brand-50 transition-colors" onClick={() => navigate('/analyze')}>
@@ -48,22 +47,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Investment thesis */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          { label: 'Capital Budget',   value: '$800,000' },
-          { label: 'Target / Unit',    value: '$200k–$300k' },
-          { label: 'Min Cap Rate',     value: '6.5%' },
-          { label: 'Min CoC Return',   value: '7%–9%' },
-        ].map((s) => (
-          <div key={s.label} className="card py-4">
-            <p className="text-xs text-gray-500">{s.label}</p>
-            <p className="text-lg font-bold mt-0.5">{s.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Saved analyses stats */}
+      {/* Summary stats */}
       {properties.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
@@ -72,7 +56,7 @@ export default function Home() {
             { label: 'Researching',    value: stats.researching },
             { label: 'Total Value',    value: $(stats.totalValue) },
           ].map((s) => (
-            <div key={s.label} className="card py-4 bg-gray-50 border-gray-100">
+            <div key={s.label} className="card py-4">
               <p className="text-xs text-gray-400">{s.label}</p>
               <p className="text-xl font-bold mt-0.5">{s.value}</p>
             </div>
@@ -100,7 +84,7 @@ export default function Home() {
             <table className="min-w-full divide-y divide-gray-200 text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  {['Property','Type','Units','Price','Rent/mo','Status',''].map((h) => (
+                  {['Property', 'Type', 'Units', 'Asking Price', 'Rent/mo', 'Status', ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>
                   ))}
                 </tr>
@@ -124,11 +108,17 @@ export default function Home() {
                             </a>
                           ) : p.address}
                         </p>
-                        <p className="text-xs text-gray-400">{p.city}, {p.state}</p>
+                        <p className="text-xs text-gray-400">
+                          {p.city}, {p.state}
+                          {p.neighborhood && ` · ${p.neighborhood}`}
+                        </p>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 capitalize">{p.property_type?.replace(/_/g,' ')}</td>
-                      <td className="px-4 py-3 text-gray-600">{p.num_units}</td>
-                      <td className="px-4 py-3 font-medium">{$(p.purchase_price)}</td>
+                      <td className="px-4 py-3 text-gray-600 capitalize">{p.property_type?.replace(/_/g, ' ')}</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {p.num_units}
+                        {p.unit_config && <span className="ml-1 text-xs text-gray-400">({p.unit_config})</span>}
+                      </td>
+                      <td className="px-4 py-3 font-medium">{$(p.asking_price)}</td>
                       <td className="px-4 py-3 text-gray-600">{$(p.monthly_rent)}</td>
                       <td className="px-4 py-3">
                         <span className={`badge ${rc.color}`}>{rc.label}</span>
@@ -148,27 +138,22 @@ export default function Home() {
         )}
       </div>
 
-      {/* Investment criteria reference */}
+      {/* Investment criteria */}
       <div className="card bg-gray-50 border-gray-100">
-        <h3 className="font-semibold text-gray-700 mb-3">Investment Criteria Quick Reference</h3>
+        <h3 className="font-semibold text-gray-700 mb-3 text-sm">Fixed Underwriting Assumptions</h3>
         <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-3">
           {[
-            ['Strategy',          'Buy-and-hold · 5–10 years'],
-            ['Market',            'Raleigh-Durham, NC'],
-            ['Types',             'Duplex, fourplex, small MF, select SFR'],
-            ['Vintage',           '1980s–2000s preferred'],
-            ['Asset Class',       'B-class only'],
-            ['Min Cap Rate',      '6.5%'],
-            ['Min CoC Return',    '7%–9%'],
-            ['Min DSCR',          '1.20x'],
-            ['Rent / Price',      '10%–15% annually'],
-            ['Max Renovation',    '≤ 10–15% of price'],
-            ['Base Rate',         '6.5%'],
-            ['Stress Rate',       '7.5%'],
-            ['Base Vacancy',      '5%'],
-            ['Stress Vacancy',    '10%'],
-            ['Expense Stress',    'Base + 15%'],
-            ['Rent Stress',       'Base − 10%'],
+            ['Purchase Price',  '95% of asking'],
+            ['Down Payment',    '25%'],
+            ['Amount Financed', '75%'],
+            ['Interest Rate',   '7% fixed'],
+            ['Loan Term',       '30 years'],
+            ['Closing Costs',   '4% of purchase price'],
+            ['Reserves',        '6 months of mortgage'],
+            ['GRM Target',      '< 12'],
+            ['Cap Rate Target', '≥ 6.5%'],
+            ['DCR Target',      '> 130%'],
+            ['ROI Target',      '> 10%'],
           ].map(([k, v]) => (
             <div key={k} className="flex gap-2">
               <span className="text-gray-400 shrink-0">{k}:</span>
