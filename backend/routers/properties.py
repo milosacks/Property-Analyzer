@@ -20,7 +20,8 @@ def list_properties(status: Optional[str] = None, property_type: Optional[str] =
 @router.post("/", response_model=Property, status_code=201)
 def create_property(payload: PropertyCreate):
     now  = datetime.now(timezone.utc).isoformat()
-    data = payload.model_dump()
+    data = payload.model_dump(exclude_none=True)
+    data["purchase_price"] = data["asking_price"] * 0.95  # satisfy legacy NOT NULL column
     data["created_at"] = now
     data["updated_at"] = now
     result = supabase.table("properties").insert(data).execute()
@@ -40,6 +41,8 @@ def update_property(property_id: str, payload: PropertyUpdate):
     data = {k: v for k, v in payload.model_dump().items() if v is not None}
     if not data:
         raise HTTPException(status_code=400, detail="No fields to update")
+    if "asking_price" in data:
+        data["purchase_price"] = data["asking_price"] * 0.95
     data["updated_at"] = datetime.now(timezone.utc).isoformat()
     result = supabase.table("properties").update(data).eq("id", property_id).execute()
     if not result.data:

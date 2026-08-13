@@ -9,13 +9,12 @@ const $ = (n) => n == null ? '—' : new Intl.NumberFormat('en-US', { style: 'cu
 function propertyToForm(prop) {
   return {
     ...prop,
-    neighborhood:    prop.neighborhood    ?? '',
-    broker:          prop.broker          ?? '',
-    unit_config:     prop.unit_config     ?? '',
-    sqft:            prop.sqft            ?? '',
-    annual_expenses: prop.annual_expenses ?? '',
-    notes:           prop.notes           ?? '',
-    zillow_url:      prop.zillow_url      ?? '',
+    neighborhood: prop.neighborhood ?? '',
+    broker:       prop.broker       ?? '',
+    unit_config:  prop.unit_config  ?? '',
+    sqft:         prop.sqft         ?? '',
+    notes:        prop.notes        ?? '',
+    zillow_url:   prop.zillow_url   ?? '',
   }
 }
 
@@ -23,11 +22,10 @@ function toPayload(form) {
   const num = (v) => (v === '' || v == null ? null : Number(v))
   return {
     ...form,
-    num_units:       Number(form.num_units) || 1,
-    sqft:            num(form.sqft),
-    asking_price:    Number(form.asking_price),
-    monthly_rent:    Number(form.monthly_rent),
-    annual_expenses: Number(form.annual_expenses) || 0,
+    num_units:    Number(form.num_units) || 1,
+    sqft:         num(form.sqft),
+    asking_price: Number(form.asking_price),
+    monthly_rent: Number(form.monthly_rent),
   }
 }
 
@@ -166,7 +164,6 @@ export default function PropertyDetail() {
       <div className="card flex flex-wrap gap-6 text-sm">
         <div><p className="text-xs text-gray-400">Asking Price</p><p className="font-bold">{$(property.asking_price)}</p></div>
         <div><p className="text-xs text-gray-400">Monthly Rent</p><p className="font-bold">{$(property.monthly_rent)}</p></div>
-        <div><p className="text-xs text-gray-400">Annual Expenses</p><p className="font-bold">{$(property.annual_expenses)}</p></div>
         {property.sqft && (
           <div><p className="text-xs text-gray-400">Sq Ft</p><p className="font-bold">{property.sqft.toLocaleString()}</p></div>
         )}

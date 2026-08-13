@@ -150,6 +150,7 @@ export default function Home() {
             ['Loan Term',       '30 years'],
             ['Closing Costs',   '4% of purchase price'],
             ['Reserves',        '6 months of mortgage'],
+            ['Expenses',        '40% of gross income'],
             ['GRM Target',      '< 12'],
             ['Cap Rate Target', '≥ 6.5%'],
             ['DCR Target',      '> 130%'],

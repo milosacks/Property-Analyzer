@@ -8,7 +8,7 @@ export const EMPTY_FORM = {
   neighborhood: '', broker: '', zillow_url: '', notes: '',
   status: 'analyzing',
   property_type: 'duplex', num_units: '', unit_config: '', sqft: '',
-  asking_price: '', monthly_rent: '', annual_expenses: '',
+  asking_price: '', monthly_rent: '',
 }
 
 function num(v) { return v === '' || v == null ? null : Number(v) }
@@ -16,11 +16,10 @@ function num(v) { return v === '' || v == null ? null : Number(v) }
 export function toPayload(form) {
   return {
     ...form,
-    num_units:       Number(form.num_units) || 1,
-    sqft:            num(form.sqft),
-    asking_price:    Number(form.asking_price),
-    monthly_rent:    Number(form.monthly_rent),
-    annual_expenses: Number(form.annual_expenses) || 0,
+    num_units:    Number(form.num_units) || 1,
+    sqft:         num(form.sqft),
+    asking_price: Number(form.asking_price),
+    monthly_rent: Number(form.monthly_rent),
   }
 }
 

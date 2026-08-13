@@ -98,13 +98,10 @@ export default function PropertyForm({
           </Field>
         </div>
 
-        <SectionHeader title="Financials" />
+        <SectionHeader title="Financials" subtitle="Expenses are calculated automatically as 40% of gross income" />
 
         <Field label="Monthly Rent ($)" hint="total across all units">
           <Input form={form} field="monthly_rent" type="number" required min={0} placeholder="6800" onChange={onChange} />
-        </Field>
-        <Field label="Annual Expenses ($)" hint="taxes + insurance + repairs + mgmt + CapEx">
-          <Input form={form} field="annual_expenses" type="number" min={0} placeholder="32640" onChange={onChange} />
         </Field>
         {form.monthly_rent && Number(form.num_units) > 0 && (
           <div className="flex items-center text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2">

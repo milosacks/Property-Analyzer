@@ -11,6 +11,5 @@ def analyze_property(payload: AnalyzeRequest):
     return analyze(
         asking_price=asking,
         monthly_rent=payload.monthly_rent,
-        annual_expenses=payload.annual_expenses,
         sqft=payload.sqft,
     )

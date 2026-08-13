@@ -23,14 +23,17 @@ def mortgage_payment(loan_amount: float, annual_rate: float, years: int) -> floa
     return loan_amount * r * (1 + r) ** n / ((1 + r) ** n - 1)
 
 
+EXPENSE_RATIO = 0.40   # annual expenses = 40% of gross income
+
+
 def analyze(
-    asking_price:    float,
-    monthly_rent:    float,
-    annual_expenses: float,
-    sqft:            int = None,
+    asking_price: float,
+    monthly_rent: float,
+    sqft:         int = None,
 ) -> dict:
     purchase_price  = asking_price * PURCHASE_PRICE_FACTOR
     gross_income    = monthly_rent * 12
+    annual_expenses = gross_income * EXPENSE_RATIO
     noi             = gross_income - annual_expenses
     cap_rate        = noi / purchase_price        if purchase_price > 0 else 0.0
     grm             = purchase_price / gross_income if gross_income > 0 else 0.0

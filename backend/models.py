@@ -27,10 +27,9 @@ class PropertyBase(BaseModel):
     unit_config:   Optional[str] = None   # e.g. "4 x 2br/1ba"
     sqft:          Optional[int] = None
 
-    # Financials (inputs — everything else is calculated)
-    asking_price:    float
-    monthly_rent:    float
-    annual_expenses: float = 0.0
+    # Financials (inputs — expenses are auto-calculated at 40% of gross income)
+    asking_price: float
+    monthly_rent: float
 
 
 class PropertyCreate(PropertyBase):
@@ -51,9 +50,8 @@ class PropertyUpdate(BaseModel):
     num_units:       Optional[int]           = None
     unit_config:     Optional[str]           = None
     sqft:            Optional[int]           = None
-    asking_price:    Optional[float]         = None
-    monthly_rent:    Optional[float]         = None
-    annual_expenses: Optional[float]         = None
+    asking_price:  Optional[float] = None
+    monthly_rent:  Optional[float] = None
 
 
 class Property(PropertyBase):
@@ -68,17 +66,16 @@ class Property(PropertyBase):
 
 class AnalyzeRequest(BaseModel):
     """Accepts both new (asking_price) and legacy (purchase_price) formats."""
-    asking_price:    Optional[float] = None
-    purchase_price:  Optional[float] = None   # legacy fallback
-    monthly_rent:    float
-    annual_expenses: float           = 0.0
-    sqft:            Optional[int]   = None
+    asking_price:   Optional[float] = None
+    purchase_price: Optional[float] = None   # legacy fallback
+    monthly_rent:   float
+    sqft:           Optional[int]   = None
 
     model_config = {"extra": "ignore"}
 
 
 class AnalysisResult(BaseModel):
-    # Echoed inputs
+    # Calculated from rent (40% of gross income)
     annual_expenses:  float
     # Basic info
     purchase_price:   float

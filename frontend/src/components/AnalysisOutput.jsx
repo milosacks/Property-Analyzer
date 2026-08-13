@@ -61,7 +61,7 @@ export default function AnalysisOutput({ analysis: a }) {
           value={a.grm.toFixed(2)}
           color={grade('grm', a.grm)}
         />
-        <Row label="Annual Expenses" value={$(a.annual_expenses)} />
+        <Row label="Annual Expenses" hint="40% of gross income" value={$(a.annual_expenses)} />
         <Row
           label="Cap Rate"
           hint="target ≥ 6.5%"
