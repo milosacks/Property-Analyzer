@@ -13,9 +13,9 @@ LOAN_TERM_YEARS       = 30
 CLOSING_PCT           = 0.04   # closing costs as % of purchase price
 RESERVE_MONTHS        = 6      # months of operating cost held as reserves
 
-# Operating expense defaults (Durham, NC B-class multifamily estimates)
-INSURANCE_RATE = 0.008   # landlord insurance ≈ 0.8% of purchase price
-TAX_RATE       = 0.012   # Durham County + City combined ≈ 1.2% of assessed value
+# Operating expense defaults (Durham, NC B-class multifamily — conservative estimates)
+INSURANCE_RATE = 0.010   # landlord insurance ≈ 1.0% of purchase price
+TAX_RATE       = 0.013   # Durham County + City combined ~1.21%, buffered to 1.3%
 MGMT_RATE      = 0.10    # property management fee ≈ 10% of gross rent
 
 

@@ -14,7 +14,7 @@ export const EMPTY_FORM = {
   purchase_price_pct: '95', down_pct: '25', interest_rate: '7',
   loan_term_years: '30', closing_pct: '4', reserve_months: '6',
   // Expense assumptions (Durham, NC defaults)
-  insurance_rate: '0.8', tax_rate: '1.2', mgmt_rate: '10',
+  insurance_rate: '1.0', tax_rate: '1.3', mgmt_rate: '10',
 }
 
 function num(v) { return v === '' || v == null ? null : Number(v) }
