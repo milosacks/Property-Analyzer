@@ -1,3 +1,5 @@
+import AnalysisSuggestions from './AnalysisSuggestions'
+
 const $ = (n) =>
   n == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
@@ -121,6 +123,8 @@ export default function AnalysisOutput({ analysis: a }) {
           color={grade('cf', a.monthly_cash_flow)}
         />
       </Section>
+
+      <AnalysisSuggestions analysis={a} />
     </div>
   )
 }
