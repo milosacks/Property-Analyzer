@@ -113,7 +113,7 @@ export default function PropertyForm({
         <SectionHeader title="Property Information" />
 
         <div className="sm:col-span-2">
-          <Field label="Zillow URL" hint="paste to auto-fill property details">
+          <Field label="Zillow URL (Optional)" hint="paste to auto-fill property details">
             <div className="flex gap-2">
               <Input form={form} field="zillow_url" type="url" placeholder="https://www.zillow.com/homedetails/…" onChange={(f, v) => { onChange(f, v); setFillStatus(null) }} />
               <button
