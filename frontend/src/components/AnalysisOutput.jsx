@@ -70,9 +70,9 @@ export default function AnalysisOutput({ analysis: a }) {
         />
         <Divider />
         <Row label="Operating Expenses" value="" />
-        <Row label="Insurance"            value={$(a.insurance)}     indent />
-        <Row label="Property Tax"         value={$(a.property_tax)}  indent />
-        <Row label="Property Management"  value={$(a.property_mgmt)} indent />
+        <Row label="Insurance"           hint={`${fp(a.insurance_rate)} of purchase price`}  value={$(a.insurance)}     indent />
+        <Row label="Property Tax"        hint={`${fp(a.tax_rate)} of purchase price`}        value={$(a.property_tax)}  indent />
+        <Row label="Property Management" hint={`${fp(a.mgmt_rate)} of gross income`}         value={$(a.property_mgmt)} indent />
         <Row label="Total Expenses" value={$(a.annual_expenses)} bold />
         <Divider />
         <Row label="NOI (Net Operating Income)" value={$(a.noi)} />
