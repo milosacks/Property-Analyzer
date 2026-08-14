@@ -113,6 +113,30 @@ export default function PropertyForm({
         <SectionHeader title="Property Information" />
 
         <div className="sm:col-span-2">
+          <Field label="Zillow URL" hint="paste to auto-fill property details">
+            <div className="flex gap-2">
+              <Input form={form} field="zillow_url" type="url" placeholder="https://www.zillow.com/homedetails/…" onChange={(f, v) => { onChange(f, v); setFillStatus(null) }} />
+              <button
+                type="button"
+                onClick={handleZillowFill}
+                disabled={!form.zillow_url || filling}
+                className="btn-secondary shrink-0 text-sm"
+              >
+                {filling ? 'Filling…' : 'Auto-fill'}
+              </button>
+            </div>
+            {fillStatus === 'full' && (
+              <p className="text-xs text-green-600 mt-1">Filled from Zillow — verify beds/baths are per unit, then enter monthly rent.</p>
+            )}
+            {fillStatus === 'partial' && (
+              <p className="text-xs text-amber-600 mt-1">Address filled from URL. Zillow blocked the page fetch — fill in price, beds, baths, and sqft manually.</p>
+            )}
+            {fillStatus === 'error' && (
+              <p className="text-xs text-red-500 mt-1">Could not reach Zillow. Fill in fields manually.</p>
+            )}
+          </Field>
+        </div>
+        <div className="sm:col-span-2">
           <Field label="Address">
             <Input form={form} field="address" required placeholder="1919 Morehead Ave" onChange={onChange} />
           </Field>
@@ -171,30 +195,6 @@ export default function PropertyForm({
         <Field label="Square Feet" hint="optional">
           <Input form={form} field="sqft" type="number" min={0} placeholder="3360" onChange={onChange} />
         </Field>
-        <div className="sm:col-span-2">
-          <Field label="Zillow URL" hint="paste to auto-fill property details">
-            <div className="flex gap-2">
-              <Input form={form} field="zillow_url" type="url" placeholder="https://www.zillow.com/homedetails/…" onChange={(f, v) => { onChange(f, v); setFillStatus(null) }} />
-              <button
-                type="button"
-                onClick={handleZillowFill}
-                disabled={!form.zillow_url || filling}
-                className="btn-secondary shrink-0 text-sm"
-              >
-                {filling ? 'Filling…' : 'Auto-fill'}
-              </button>
-            </div>
-            {fillStatus === 'full' && (
-              <p className="text-xs text-green-600 mt-1">Filled from Zillow — verify beds/baths are per unit, then enter monthly rent.</p>
-            )}
-            {fillStatus === 'partial' && (
-              <p className="text-xs text-amber-600 mt-1">Address filled from URL. Zillow blocked the page fetch — fill in price, beds, baths, and sqft manually.</p>
-            )}
-            {fillStatus === 'error' && (
-              <p className="text-xs text-red-500 mt-1">Could not reach Zillow. Fill in fields manually.</p>
-            )}
-          </Field>
-        </div>
 
         <SectionHeader title="Financials" />
 
