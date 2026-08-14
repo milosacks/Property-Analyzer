@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { api } from '../api/properties'
+
 function Field({ label, hint, children }) {
   return (
     <div>
@@ -58,10 +61,51 @@ function AsmpField({ label, field, suffix, form, onChange, step = 'any', min }) 
   )
 }
 
+// Snap extracted beds/baths to the nearest dropdown option
+function snapBeds(n)  {
+  if (n == null) return null
+  const v = Math.round(Number(n))
+  return v === 0 ? 'studio' : String(Math.min(v, 5))
+}
+function snapBaths(n) {
+  if (n == null) return null
+  const opts = [1, 1.5, 2, 2.5, 3]
+  const v = Number(n)
+  return String(opts.reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a))
+}
+
 export default function PropertyForm({
   form, onChange, onSubmit, onCancel,
   loading = false, submitLabel = 'Analyze Property', error,
 }) {
+  const [filling,     setFilling]     = useState(false)
+  const [fillStatus,  setFillStatus]  = useState(null)  // null | 'partial' | 'full' | 'error'
+
+  async function handleZillowFill() {
+    if (!form.zillow_url) return
+    setFilling(true)
+    setFillStatus(null)
+    try {
+      const d = await api.extractZillow(form.zillow_url)
+      // Apply every extracted field that has a value
+      const MAP = {
+        address: 'address', city: 'city', state: 'state', zip_code: 'zip_code',
+        neighborhood: 'neighborhood', sqft: 'sqft', asking_price: 'asking_price',
+        num_units: 'num_units', property_type: 'property_type',
+      }
+      Object.entries(MAP).forEach(([src, dst]) => {
+        if (d[src] != null) onChange(dst, String(d[src]))
+      })
+      if (d.beds  != null) onChange('beds_per_unit',  snapBeds(d.beds))
+      if (d.baths != null) onChange('baths_per_unit', snapBaths(d.baths))
+      setFillStatus(d.page_scraped ? 'full' : 'partial')
+    } catch {
+      setFillStatus('error')
+    } finally {
+      setFilling(false)
+    }
+  }
+
   return (
     <form onSubmit={onSubmit} className="card space-y-0">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -128,8 +172,27 @@ export default function PropertyForm({
           <Input form={form} field="sqft" type="number" min={0} placeholder="3360" onChange={onChange} />
         </Field>
         <div className="sm:col-span-2">
-          <Field label="Zillow URL" hint="optional">
-            <Input form={form} field="zillow_url" type="url" placeholder="https://www.zillow.com/homes/…" onChange={onChange} />
+          <Field label="Zillow URL" hint="paste to auto-fill property details">
+            <div className="flex gap-2">
+              <Input form={form} field="zillow_url" type="url" placeholder="https://www.zillow.com/homedetails/…" onChange={(f, v) => { onChange(f, v); setFillStatus(null) }} />
+              <button
+                type="button"
+                onClick={handleZillowFill}
+                disabled={!form.zillow_url || filling}
+                className="btn-secondary shrink-0 text-sm"
+              >
+                {filling ? 'Filling…' : 'Auto-fill'}
+              </button>
+            </div>
+            {fillStatus === 'full' && (
+              <p className="text-xs text-green-600 mt-1">Filled from Zillow — verify beds/baths are per unit, then enter monthly rent.</p>
+            )}
+            {fillStatus === 'partial' && (
+              <p className="text-xs text-amber-600 mt-1">Address filled from URL. Zillow blocked the page fetch — fill in price, beds, baths, and sqft manually.</p>
+            )}
+            {fillStatus === 'error' && (
+              <p className="text-xs text-red-500 mt-1">Could not reach Zillow. Fill in fields manually.</p>
+            )}
           </Field>
         </div>
 

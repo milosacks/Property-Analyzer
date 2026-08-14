@@ -2,12 +2,13 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
-from routers import properties, analysis
+from routers import properties, analysis, zillow
 
 app = FastAPI(title="Property Analyzer", version="3.0.0")
 
 app.include_router(properties.router)
 app.include_router(analysis.router)
+app.include_router(zillow.router)
 
 # Serve React build in production
 _static = Path(__file__).parent.parent / "frontend" / "dist"

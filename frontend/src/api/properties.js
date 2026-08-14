@@ -35,6 +35,10 @@ export const api = {
   updateProperty: (id, data) => request(`/properties/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteProperty: (id)       => request(`/properties/${id}`, { method: 'DELETE' }),
 
+  // Zillow auto-fill
+  extractZillow: (url) =>
+    request('/zillow/extract', { method: 'POST', body: JSON.stringify({ url }) }),
+
   // Transactions
   listTransactions:  (pid)       => request(`/properties/${pid}/transactions`),
   createTransaction: (pid, data) =>
