@@ -75,7 +75,6 @@ export default function AnalysisOutput({ analysis: a }) {
         <Row label="Property Management" hint={`${fp(a.mgmt_rate)} of gross income`}         value={$(a.property_mgmt)} indent />
         <Row label="Total Expenses" value={$(a.annual_expenses)} bold />
         <Divider />
-        <Row label="NOI (Net Operating Income)" value={$(a.noi)} />
         <Row
           label="Cap Rate"
           hint="target ≥ 6.5%"
