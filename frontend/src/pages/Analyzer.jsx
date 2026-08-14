@@ -10,9 +10,11 @@ export const EMPTY_FORM = {
   property_type: 'duplex', num_units: '', sqft: '',
   beds_per_unit: '2', baths_per_unit: '1',
   asking_price: '', monthly_rent: '',
-  // Assumptions (shown as whole-number percentages in UI)
-  expense_ratio: '40', purchase_price_pct: '95', down_pct: '25',
-  interest_rate: '7', loan_term_years: '30', closing_pct: '4', reserve_months: '6',
+  // Financing assumptions (UI shows %, backend uses decimals)
+  purchase_price_pct: '95', down_pct: '25', interest_rate: '7',
+  loan_term_years: '30', closing_pct: '4', reserve_months: '6',
+  // Expense assumptions (Durham, NC defaults)
+  insurance_rate: '0.8', tax_rate: '1.2', mgmt_rate: '10',
 }
 
 function num(v) { return v === '' || v == null ? null : Number(v) }
@@ -34,13 +36,15 @@ export function toPayload(form) {
     monthly_rent: Number(form.monthly_rent),
     unit_config:  buildUnitConfig(numUnits, form.beds_per_unit, form.baths_per_unit),
     // Convert UI percentages to decimals for the backend
-    expense_ratio:      pct(form.expense_ratio)      ?? 0.40,
     purchase_price_pct: pct(form.purchase_price_pct) ?? 0.95,
     down_pct:           pct(form.down_pct)           ?? 0.25,
     interest_rate:      pct(form.interest_rate)      ?? 0.07,
     loan_term_years:    num(form.loan_term_years)    ?? 30,
     closing_pct:        pct(form.closing_pct)        ?? 0.04,
     reserve_months:     num(form.reserve_months)     ?? 6,
+    insurance_rate:     pct(form.insurance_rate)     ?? 0.008,
+    tax_rate:           pct(form.tax_rate)           ?? 0.012,
+    mgmt_rate:          pct(form.mgmt_rate)          ?? 0.10,
   }
 }
 

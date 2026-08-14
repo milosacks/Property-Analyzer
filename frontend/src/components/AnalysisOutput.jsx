@@ -1,6 +1,8 @@
 const $ = (n) =>
   n == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
+const fp = (v) => `${parseFloat((v * 100).toFixed(3))}%`
+
 function grade(type, v) {
   switch (type) {
     case 'grm': return v <= 12 ? 'text-green-600' : v <= 15 ? 'text-amber-600' : 'text-red-500'
@@ -13,11 +15,12 @@ function grade(type, v) {
   }
 }
 
-function Row({ label, value, hint, color = 'text-gray-900', bold = false }) {
+function Row({ label, value, hint, color = 'text-gray-900', bold = false, indent = false }) {
   return (
     <div className={`flex items-baseline justify-between py-1.5 text-sm
-      ${bold ? 'bg-gray-50 rounded px-2 -mx-2 my-0.5' : ''}`}>
-      <span className={`${bold ? 'font-semibold text-gray-700' : 'text-gray-500'}`}>
+      ${bold ? 'bg-gray-50 rounded px-2 -mx-2 my-0.5' : ''}
+      ${indent ? 'pl-4' : ''}`}>
+      <span className={`${bold ? 'font-semibold text-gray-700' : indent ? 'text-gray-400' : 'text-gray-500'}`}>
         {label}
         {hint && <span className="ml-1.5 text-xs text-gray-400 font-normal">{hint}</span>}
       </span>
@@ -41,13 +44,15 @@ function Section({ title, children }) {
   )
 }
 
-const fp = (v) => `${parseFloat((v * 100).toFixed(3))}%`
-
 export default function AnalysisOutput({ analysis: a }) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-4 py-2">
-        Assumptions: {fp(a.purchase_price_pct)} of asking · {fp(a.down_pct)} down · {fp(a.interest_rate)} / {a.loan_term_years}yr · {fp(a.closing_pct)} closing · {a.reserve_months} month reserves · {fp(a.expense_ratio)} expense ratio
+      <p className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 leading-relaxed">
+        <span className="font-medium text-gray-500">Financing:</span>{' '}
+        {fp(a.purchase_price_pct)} of asking · {fp(a.down_pct)} down · {fp(a.interest_rate)} / {a.loan_term_years}yr · {fp(a.closing_pct)} closing · {a.reserve_months}-month reserves
+        {' · '}
+        <span className="font-medium text-gray-500">Expenses:</span>{' '}
+        {fp(a.insurance_rate)} insurance · {fp(a.tax_rate)} property tax · {fp(a.mgmt_rate)} mgmt
       </p>
 
       <Section title="Basic Info">
@@ -63,7 +68,14 @@ export default function AnalysisOutput({ analysis: a }) {
           value={a.grm.toFixed(2)}
           color={grade('grm', a.grm)}
         />
-        <Row label="Annual Expenses" hint="40% of gross income" value={$(a.annual_expenses)} />
+        <Divider />
+        <Row label="Operating Expenses" value="" />
+        <Row label="Insurance"            value={$(a.insurance)}     indent />
+        <Row label="Property Tax"         value={$(a.property_tax)}  indent />
+        <Row label="Property Management"  value={$(a.property_mgmt)} indent />
+        <Row label="Total Expenses" value={$(a.annual_expenses)} bold />
+        <Divider />
+        <Row label="NOI (Net Operating Income)" value={$(a.noi)} />
         <Row
           label="Cap Rate"
           hint="target ≥ 6.5%"
@@ -73,14 +85,14 @@ export default function AnalysisOutput({ analysis: a }) {
       </Section>
 
       <Section title="Purchase">
-        <Row label="Down Payment" hint="25%" value={$(a.down_payment)} />
-        <Row label="Closing Costs" hint="4%" value={$(a.closing_cost)} />
-        <Row label="Reserves" hint="6 months" value={$(a.reserves)} />
+        <Row label="Down Payment"   hint={fp(a.down_pct)}    value={$(a.down_payment)} />
+        <Row label="Closing Costs"  hint={fp(a.closing_pct)} value={$(a.closing_cost)} />
+        <Row label="Reserves"       hint={`${a.reserve_months} months of operating costs`} value={$(a.reserves)} />
         <Divider />
         <Row label="Cash at Closing" value={$(a.cash_at_closing)} bold />
         <Divider />
-        <Row label="Amount Financed" hint="75%" value={$(a.amount_financed)} />
-        <Row label="Monthly Mortgage" hint="7% / 30yr" value={$(a.monthly_mortgage)} bold />
+        <Row label="Amount Financed" hint={fp(1 - a.down_pct)} value={$(a.amount_financed)} />
+        <Row label="Monthly Mortgage" hint={`${fp(a.interest_rate)} / ${a.loan_term_years}yr`} value={$(a.monthly_mortgage)} bold />
       </Section>
 
       <Section title="Returns">

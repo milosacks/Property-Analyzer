@@ -71,28 +71,37 @@ class AnalyzeRequest(BaseModel):
     monthly_rent:   float
     sqft:           Optional[int]   = None
     # Overrideable assumptions (decimals, e.g. 0.95 not 95)
-    expense_ratio:      Optional[float] = None
     purchase_price_pct: Optional[float] = None
     down_pct:           Optional[float] = None
     interest_rate:      Optional[float] = None
     loan_term_years:    Optional[int]   = None
     closing_pct:        Optional[float] = None
     reserve_months:     Optional[int]   = None
+    insurance_rate:     Optional[float] = None
+    tax_rate:           Optional[float] = None
+    mgmt_rate:          Optional[float] = None
 
     model_config = {"extra": "ignore"}
 
 
 class AnalysisResult(BaseModel):
     # Echoed assumptions
-    expense_ratio:      float
+    insurance_rate:     float
+    tax_rate:           float
+    mgmt_rate:          float
     purchase_price_pct: float
     down_pct:           float
     interest_rate:      float
     loan_term_years:    int
     closing_pct:        float
     reserve_months:     int
-    # Calculated outputs
-    annual_expenses:  float
+    # Expense breakdown
+    insurance:       float
+    property_tax:    float
+    utilities:       float
+    property_mgmt:   float
+    annual_expenses: float
+    # Outputs
     purchase_price:   float
     price_per_sqft:   Optional[float] = None
     gross_income:     float

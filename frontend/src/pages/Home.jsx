@@ -143,18 +143,19 @@ export default function Home() {
         <h3 className="font-semibold text-gray-700 mb-3 text-sm">Fixed Underwriting Assumptions</h3>
         <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-3">
           {[
-            ['Purchase Price',  '95% of asking'],
-            ['Down Payment',    '25%'],
-            ['Amount Financed', '75%'],
-            ['Interest Rate',   '7% fixed'],
-            ['Loan Term',       '30 years'],
-            ['Closing Costs',   '4% of purchase price'],
-            ['Reserves',        '6 months of mortgage'],
-            ['Expenses',        '40% of gross income'],
-            ['GRM Target',      '< 12'],
-            ['Cap Rate Target', '≥ 6.5%'],
-            ['DCR Target',      '> 130%'],
-            ['ROI Target',      '> 10%'],
+            ['Purchase Price',    '95% of asking'],
+            ['Down Payment',      '25%'],
+            ['Interest Rate',     '7% fixed / 30yr'],
+            ['Closing Costs',     '4% of purchase price'],
+            ['Reserves',          '6 months of operating costs'],
+            ['Insurance',         '0.8% of purchase price'],
+            ['Property Tax',      '1.2% of purchase price (Durham)'],
+            ['Utilities',         '$0 — tenant-paid'],
+            ['Mgmt Fee',          '10% of gross rent'],
+            ['GRM Target',        '< 12'],
+            ['Cap Rate Target',   '≥ 6.5%'],
+            ['DCR Target',        '> 130%'],
+            ['ROI Target',        '> 10%'],
           ].map(([k, v]) => (
             <div key={k} className="flex gap-2">
               <span className="text-gray-400 shrink-0">{k}:</span>

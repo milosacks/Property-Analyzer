@@ -30,8 +30,9 @@ function propertyToForm(prop) {
     // Parse stored unit_config back to dropdown values
     ...parseUnitConfig(prop.unit_config),
     // Default assumptions for the edit form
-    expense_ratio: '40', purchase_price_pct: '95', down_pct: '25',
-    interest_rate: '7', loan_term_years: '30', closing_pct: '4', reserve_months: '6',
+    purchase_price_pct: '95', down_pct: '25', interest_rate: '7',
+    loan_term_years: '30', closing_pct: '4', reserve_months: '6',
+    insurance_rate: '0.8', tax_rate: '1.2', mgmt_rate: '10',
   }
 }
 
@@ -46,13 +47,15 @@ function toPayload(form) {
     asking_price: Number(form.asking_price),
     monthly_rent: Number(form.monthly_rent),
     unit_config:  buildUnitConfig(numUnits, form.beds_per_unit, form.baths_per_unit),
-    expense_ratio:      pct(form.expense_ratio)      ?? 0.40,
     purchase_price_pct: pct(form.purchase_price_pct) ?? 0.95,
     down_pct:           pct(form.down_pct)           ?? 0.25,
     interest_rate:      pct(form.interest_rate)      ?? 0.07,
     loan_term_years:    n(form.loan_term_years)      ?? 30,
     closing_pct:        pct(form.closing_pct)        ?? 0.04,
     reserve_months:     n(form.reserve_months)       ?? 6,
+    insurance_rate:     pct(form.insurance_rate)     ?? 0.008,
+    tax_rate:           pct(form.tax_rate)           ?? 0.012,
+    mgmt_rate:          pct(form.mgmt_rate)          ?? 0.10,
   }
 }
 

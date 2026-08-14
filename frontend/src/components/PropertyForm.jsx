@@ -144,16 +144,18 @@ export default function PropertyForm({
           </div>
         )}
 
-        <SectionHeader title="Assumptions" subtitle="Defaults reflect a typical buy-and-hold strategy — adjust to model different scenarios" />
+        <SectionHeader title="Assumptions" subtitle="Defaults based on Durham, NC B-class multifamily market data — adjust to model different scenarios" />
 
         <div className="col-span-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          <AsmpField label="Purchase Price"  field="purchase_price_pct" suffix="% of asking"        form={form} onChange={onChange} min={50} />
-          <AsmpField label="Down Payment"    field="down_pct"           suffix="%"                   form={form} onChange={onChange} min={0} />
-          <AsmpField label="Interest Rate"   field="interest_rate"      suffix="%"                   form={form} onChange={onChange} min={0} step={0.125} />
-          <AsmpField label="Loan Term"       field="loan_term_years"    suffix="years"               form={form} onChange={onChange} min={1} step={1} />
-          <AsmpField label="Closing Costs"   field="closing_pct"        suffix="% of purchase price" form={form} onChange={onChange} min={0} />
-          <AsmpField label="Reserves"        field="reserve_months"     suffix="months"              form={form} onChange={onChange} min={0} step={1} />
-          <AsmpField label="Expense Ratio"   field="expense_ratio"      suffix="% of gross income"   form={form} onChange={onChange} min={0} max={100} />
+          <AsmpField label="Purchase Price"    field="purchase_price_pct" suffix="% of asking"          form={form} onChange={onChange} min={50} />
+          <AsmpField label="Down Payment"      field="down_pct"           suffix="%"                     form={form} onChange={onChange} min={0} />
+          <AsmpField label="Interest Rate"     field="interest_rate"      suffix="%"                     form={form} onChange={onChange} min={0} step={0.125} />
+          <AsmpField label="Loan Term"         field="loan_term_years"    suffix="years"                 form={form} onChange={onChange} min={1} step={1} />
+          <AsmpField label="Closing Costs"     field="closing_pct"        suffix="% of purchase price"   form={form} onChange={onChange} min={0} />
+          <AsmpField label="Reserves"          field="reserve_months"     suffix="months of op. costs"   form={form} onChange={onChange} min={0} step={1} />
+          <AsmpField label="Insurance Rate"    field="insurance_rate"     suffix="% of purchase price"   form={form} onChange={onChange} min={0} step={0.1} />
+          <AsmpField label="Property Tax Rate" field="tax_rate"           suffix="% of purchase price"   form={form} onChange={onChange} min={0} step={0.1} />
+          <AsmpField label="Mgmt Fee"          field="mgmt_rate"          suffix="% of rent"             form={form} onChange={onChange} min={0} />
         </div>
 
         <SectionHeader title="Status & Notes" />
