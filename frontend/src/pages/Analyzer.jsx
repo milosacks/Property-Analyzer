@@ -11,7 +11,7 @@ export const EMPTY_FORM = {
   beds_per_unit: '2', baths_per_unit: '1',
   asking_price: '', monthly_rent: '',
   // Financing assumptions (UI shows %, backend uses decimals)
-  purchase_price_pct: '95', down_pct: '25', interest_rate: '7',
+  purchase_price_pct: '95', down_pct: '25', interest_rate: '7.5',
   loan_term_years: '30', closing_pct: '4', reserve_months: '6',
   // Expense assumptions (Durham, NC defaults)
   insurance_rate: '1.0', tax_rate: '1.3', mgmt_rate: '10',

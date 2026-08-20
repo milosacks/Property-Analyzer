@@ -8,7 +8,7 @@ utilities, property management) and can be overridden per-analysis.
 # ── Default assumptions ───────────────────────────────────────────────────────
 PURCHASE_PRICE_FACTOR = 0.95   # purchase price = 95% of asking price
 DOWN_PCT              = 0.25   # down payment as % of purchase price
-INTEREST_RATE         = 0.07   # 7% annual fixed rate
+INTEREST_RATE         = 0.075  # 7.5% annual fixed rate (investment property premium, Aug 2026)
 LOAN_TERM_YEARS       = 30
 CLOSING_PCT           = 0.04   # closing costs as % of purchase price
 RESERVE_MONTHS        = 6      # months of operating cost held as reserves

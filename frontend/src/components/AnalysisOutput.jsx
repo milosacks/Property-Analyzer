@@ -8,10 +8,10 @@ const fp = (v) => `${parseFloat((v * 100).toFixed(3))}%`
 function grade(type, v) {
   switch (type) {
     case 'grm': return v <= 12 ? 'text-green-600' : v <= 15 ? 'text-amber-600' : 'text-red-500'
-    case 'cap': return v >= 0.065 ? 'text-green-600' : v >= 0.05 ? 'text-amber-600' : 'text-red-500'
+    case 'cap': return v >= 0.060 ? 'text-green-600' : v >= 0.05 ? 'text-amber-600' : 'text-red-500'
     case 'dti': return v <= 100 ? 'text-green-600' : v <= 130 ? 'text-amber-600' : 'text-red-500'
     case 'dcr': return v >= 130 ? 'text-green-600' : v >= 100 ? 'text-amber-600' : 'text-red-500'
-    case 'roi': return v >= 10 ? 'text-green-600' : v >= 0 ? 'text-amber-600' : 'text-red-500'
+    case 'roi': return v >= 8 ? 'text-green-600' : v >= 0 ? 'text-amber-600' : 'text-red-500'
     case 'cf':  return v >= 200 ? 'text-green-600' : v >= 0 ? 'text-amber-600' : 'text-red-500'
     default:    return 'text-gray-900'
   }
@@ -79,7 +79,7 @@ export default function AnalysisOutput({ analysis: a }) {
         <Divider />
         <Row
           label="Cap Rate"
-          hint="target ≥ 6.5%"
+          hint="target ≥ 6.0%"
           value={`${(a.cap_rate * 100).toFixed(2)}%`}
           color={grade('cap', a.cap_rate)}
         />
@@ -111,7 +111,7 @@ export default function AnalysisOutput({ analysis: a }) {
         />
         <Row
           label="Return on Investment"
-          hint="cash flow / cash at closing — target > 10%"
+          hint="cash flow / cash at closing — target > 8%"
           value={`${a.roi.toFixed(1)}%`}
           color={grade('roi', a.roi)}
         />

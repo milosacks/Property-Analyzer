@@ -1,8 +1,8 @@
 const $ = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
-const T_ROI = 10      // % (matches a.roi units)
-const T_CAP = 0.065   // decimal (matches a.cap_rate units)
+const T_ROI = 8       // % — solid for RDU where 6–8% is strong (matches a.roi units)
+const T_CAP = 0.060   // decimal — top of RDU stabilized range 5–6.5% (matches a.cap_rate units)
 const T_CF  = 200     // $/mo
 
 // Monthly mortgage per $1 of purchase price scales with down_pct.
